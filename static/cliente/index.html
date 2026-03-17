@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Belle Salão — Agendar</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="/tema.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--cream);
+      color: var(--dark);
+      min-height: 100vh
+    }
+
+    header {
+      background: var(--dark);
+      padding: 1.2rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between
+    }
+
+    .logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.6rem;
+      color: var(--brand, var(--gold));
+      font-style: italic
+    }
+
+    .header-sub {
+      font-size: .78rem;
+      color: rgba(255, 255, 255, .35);
+      letter-spacing: .08em;
+      text-transform: uppercase
+    }
+
+    .hero {
+      background: var(--dark);
+      padding: 3rem 2rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 50% 0%, rgba(200, 169, 110, .15) 0%, transparent 70%)
+    }
+
+    .hero h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2.8rem;
+      font-weight: 300;
+      color: var(--wh);
+      position: relative
+    }
+
+    .hero h1 em {
+      font-style: italic;
+      color: var(--gold)
+    }
+
+    .hero p {
+      color: rgba(255, 255, 255, .45);
+      font-size: .95rem;
+      margin-top: .6rem;
+      position: relative
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2rem
+    }
+
+    /* STEPS */
+    .steps-bar {
+      display: flex;
+      justify-content: center;
+      gap: 0;
+      margin-bottom: 2.5rem
+    }
+
+    .step-dot {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      flex: 1;
+      max-width: 140px
+    }
+
+    .step-dot::after {
+      content: '';
+      position: absolute;
+      top: 16px;
+      left: 50%;
+      width: 100%;
+      height: 2px;
+      background: var(--warm);
+      z-index: 0
+    }
+
+    .step-dot:last-child::after {
+      display: none
+    }
+
+    .step-circle {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--warm);
+      border: 2px solid rgba(160, 112, 96, .3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .8rem;
+      font-weight: 600;
+      position: relative;
+      z-index: 1;
+      transition: all .3s;
+      color: var(--lt)
+    }
+
+    .step-circle.done {
+      background: var(--gold);
+      border-color: var(--gold);
+      color: var(--dark)
+    }
+
+    .step-circle.active {
+      background: var(--dark);
+      border-color: var(--dark);
+      color: var(--wh)
+    }
+
+    .step-label {
+      font-size: .7rem;
+      color: var(--lt);
+      margin-top: .4rem;
+      text-align: center;
+      text-transform: uppercase;
+      letter-spacing: .05em
+    }
+
+    .section {
+      background: var(--wh);
+      border-radius: 16px;
+      box-shadow: var(--sh);
+      border: 1px solid rgba(200, 169, 110, .1);
+      margin-bottom: 1.5rem;
+      overflow: hidden
+    }
+
+    .section-header {
+      padding: 1.2rem 1.5rem;
+      border-bottom: 1.5px solid var(--warm);
+      display: flex;
+      align-items: center;
+      gap: .8rem
+    }
+
+    .section-num {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--dark);
+      color: var(--wh);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .8rem;
+      font-weight: 600;
+      flex-shrink: 0
+    }
+
+    .section-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.2rem
+    }
+
+    .section-body {
+      padding: 1.2rem 1.5rem
+    }
+
+    .form-row {
+      display: grid;
+      gap: 1rem;
+      margin-bottom: 1rem
+    }
+
+    .cols-2 {
+      grid-template-columns: 1fr 1fr
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: .4rem
+    }
+
+    label {
+      font-size: .78rem;
+      font-weight: 500;
+      color: var(--mid);
+      letter-spacing: .04em;
+      text-transform: uppercase
+    }
+
+    input,
+    select,
+    textarea {
+      padding: .65rem .9rem;
+      border: 1.5px solid rgba(160, 112, 96, .2);
+      border-radius: 8px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: .9rem;
+      color: var(--dark);
+      background: var(--cream);
+      transition: border-color .2s;
+      outline: none
+    }
+
+    input:focus,
+    select:focus {
+      border-color: var(--gold);
+      background: var(--wh)
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 60px
+    }
+
+    .svc-option {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: .75rem 1rem;
+      border-radius: 10px;
+      border: 1.5px solid rgba(160, 112, 96, .15);
+      cursor: pointer;
+      transition: all .15s;
+      margin-bottom: .6rem
+    }
+
+    .svc-option:hover,
+    .svc-option.selected {
+      border-color: var(--gold);
+      background: var(--warm)
+    }
+
+    .pro-option {
+      display: flex;
+      align-items: center;
+      gap: .8rem;
+      padding: .7rem .9rem;
+      border-radius: 10px;
+      border: 1.5px solid rgba(160, 112, 96, .15);
+      cursor: pointer;
+      transition: all .15s;
+      margin-bottom: .5rem
+    }
+
+    .pro-option:hover,
+    .pro-option.selected {
+      border-color: var(--gold);
+      background: var(--warm)
+    }
+
+    .mini-av {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--wh);
+      flex-shrink: 0
+    }
+
+    .slots-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: .5rem;
+      margin-top: .5rem
+    }
+
+    .slot {
+      padding: .55rem;
+      text-align: center;
+      border-radius: 8px;
+      cursor: pointer;
+      border: 1.5px solid rgba(160, 112, 96, .2);
+      font-size: .82rem;
+      transition: all .15s;
+      background: var(--cream)
+    }
+
+    .slot:hover:not(.occupied) {
+      border-color: var(--gold);
+      background: var(--warm)
+    }
+
+    .slot.selected {
+      background: var(--dark);
+      color: var(--wh);
+      border-color: var(--dark)
+    }
+
+    .slot.occupied {
+      background: #f5f0f0;
+      color: #ccc;
+      cursor: not-allowed;
+      font-size: .72rem
+    }
+
+    .btn {
+      padding: .65rem 1.5rem;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      font-size: .88rem;
+      font-weight: 500;
+      transition: all .2s;
+      display: inline-flex;
+      align-items: center;
+      gap: .5rem
+    }
+
+    .btn-gold {
+      background: var(--gold);
+      color: var(--dark)
+    }
+
+    .btn-gold:hover {
+      background: var(--dr);
+      color: var(--wh)
+    }
+
+    .btn-outline {
+      background: transparent;
+      border: 1.5px solid var(--rose);
+      color: var(--dr)
+    }
+
+    .btn-outline:hover {
+      background: var(--rose);
+      color: var(--wh)
+    }
+
+    .btn-wpp {
+      background: #25d366;
+      color: #fff;
+      font-weight: 600
+    }
+
+    .btn-wpp:hover {
+      background: #128c4a
+    }
+
+    .btn-full {
+      width: 100%;
+      justify-content: center;
+      padding: .9rem
+    }
+
+    /* CONFIRMAÇÃO */
+    .confirm-box {
+      background: var(--dark);
+      border-radius: 20px;
+      padding: 2.5rem;
+      text-align: center;
+      margin: 2rem 0
+    }
+
+    .confirm-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem
+    }
+
+    .confirm-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2rem;
+      color: var(--gold);
+      margin-bottom: .5rem
+    }
+
+    .confirm-sub {
+      color: rgba(255, 255, 255, .5);
+      font-size: .9rem;
+      margin-bottom: 2rem
+    }
+
+    .confirm-details {
+      background: rgba(255, 255, 255, .05);
+      border-radius: 12px;
+      padding: 1.2rem;
+      text-align: left;
+      margin-bottom: 2rem
+    }
+
+    .confirm-row {
+      display: flex;
+      justify-content: space-between;
+      padding: .45rem 0;
+      border-bottom: 1px solid rgba(255, 255, 255, .06);
+      font-size: .88rem
+    }
+
+    .confirm-row:last-child {
+      border-bottom: none
+    }
+
+    .confirm-row .key {
+      color: rgba(255, 255, 255, .4)
+    }
+
+    .confirm-row .val {
+      color: var(--wh);
+      font-weight: 500
+    }
+
+    .confirm-buttons {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap
+    }
+
+    .tag {
+      display: inline-block;
+      padding: .2rem .55rem;
+      border-radius: 20px;
+      font-size: .72rem;
+      background: var(--warm);
+      color: var(--mid);
+      font-weight: 500
+    }
+
+    .loading {
+      text-align: center;
+      padding: 2rem;
+      color: var(--lt);
+      font-size: .9rem
+    }
+
+    .empty {
+      text-align: center;
+      padding: 2rem;
+      color: var(--lt);
+      font-size: .9rem
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: var(--dark);
+      color: var(--wh);
+      padding: 1rem 1.5rem;
+      border-radius: 12px;
+      font-size: .88rem;
+      box-shadow: var(--shl);
+      z-index: 999;
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all .3s;
+      display: flex;
+      align-items: center;
+      gap: .6rem
+    }
+
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1
+    }
+
+    .toast.err {
+      background: #8b2020
+    }
+
+    @media(max-width:600px) {
+      .cols-2 {
+        grid-template-columns: 1fr
+      }
+
+      .slots-grid {
+        grid-template-columns: repeat(3, 1fr)
+      }
+
+      .hero h1 {
+        font-size: 2rem
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header style="flex-direction:column;text-align:center;gap:.4rem;padding:1rem 2rem">
+    <div style="display:flex;align-items:center;justify-content:space-between;width:100%">
+      <div style="display:flex;align-items:center;gap:.4rem">
+        <div id="cl-logo-img"></div>
+        <div>
+          <div class="logo" id="cl-logo"></div>
+          <div class="header-sub" id="cl-slogan" style="opacity:.6"></div>
+          <div class="header-sub">Agendamento Online</div>
+        </div>
+      </div>
+      <a href="/meu-agendamento"
+        style="color:rgba(255,255,255,.45);font-size:.78rem;text-decoration:none;border:1px solid rgba(255,255,255,.15);padding:.4rem .9rem;border-radius:20px;white-space:nowrap"
+        onmouseover="this.style.color='#c8a96e';this.style.borderColor='#c8a96e'"
+        onmouseout="this.style.color='rgba(255,255,255,.45)';this.style.borderColor='rgba(255,255,255,.15)'">🔑 Meu
+        Agendamento</a>
+    </div>
+  </header>
+
+  <div class="hero">
+    <h1>Agende seu <em>horário</em></h1>
+    <p>Escolha o serviço, profissional e o melhor horário para você</p>
+  </div>
+
+  <div class="toast" id="toast"><span id="t-icon">✓</span><span id="t-msg"></span></div>
+
+  <div class="container" id="booking-container">
+
+    <!-- DADOS DO CLIENTE -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-num">1</div>
+        <div class="section-title">Seus dados</div>
+      </div>
+      <div class="section-body">
+        <div class="form-row cols-2">
+          <div class="form-group"><label>Nome completo *</label><input type="text" id="cl-nome" placeholder="Seu nome">
+          </div>
+          <!-- CAMPO WHATSAPP COM MÁSCARA -->
+          <div class="form-group"><label>WhatsApp *</label><input type="text" id="cl-tel" placeholder="(00) 00000-0000"
+              maxlength="15" oninput="formatarTelefone(this)"></div>
+        </div>
+        <div class="form-row cols-2">
+          <div class="form-group"><label>E-mail</label><input type="email" id="cl-email"
+              placeholder="email@exemplo.com"></div>
+          <div class="form-group"><label>Data *</label><input type="date" id="cl-data" onchange="onDataChange()"></div>
+        </div>
+        <div class="form-group"><label>Observações</label><textarea id="cl-obs"
+            placeholder="Alguma preferência ou informação importante..."></textarea></div>
+      </div>
+    </div>
+
+    <!-- SERVIÇO -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-num">2</div>
+        <div class="section-title">Escolha o serviço</div>
+      </div>
+      <div class="section-body" id="svc-list">
+        <div class="loading">Carregando serviços…</div>
+      </div>
+    </div>
+
+    <!-- PROFISSIONAL -->
+    <div class="section" id="sec-pro" style="display:none">
+      <div class="section-header">
+        <div class="section-num">3</div>
+        <div class="section-title">Escolha o profissional</div>
+      </div>
+      <div class="section-body" id="pro-list"></div>
+    </div>
+
+    <!-- HORÁRIO -->
+    <div class="section" id="sec-slot" style="display:none">
+      <div class="section-header">
+        <div class="section-num">4</div>
+        <div class="section-title">Escolha o horário</div>
+      </div>
+      <div class="section-body" id="slots-container"></div>
+    </div>
+
+    <!-- RESUMO + CONFIRMAR -->
+    <div id="sec-confirm" style="display:none">
+      <div class="section">
+        <div class="section-header">
+          <div class="section-num">5</div>
+          <div class="section-title">Confirmar agendamento</div>
+        </div>
+        <div class="section-body">
+          <div id="resumo-itens" style="background:var(--warm);border-radius:12px;padding:1.2rem;margin-bottom:1.2rem">
+          </div>
+          <button class="btn btn-gold btn-full" onclick="confirmarAgendamento()">✦ Confirmar Agendamento</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TELA DE SUCESSO -->
+  <div class="container" id="success-container" style="display:none">
+    <div class="confirm-box">
+      <div class="confirm-icon">🎉</div>
+      <div class="confirm-title">Agendamento Confirmado!</div>
+      <div class="confirm-sub">Seu horário foi reservado com sucesso</div>
+      <div class="confirm-details" id="confirm-details"></div>
+      <div class="confirm-buttons">
+        <a id="wpp-link" href="#" target="_blank" class="btn btn-wpp">📲 Receber confirmação no WhatsApp</a>
+        <button class="btn btn-outline" onclick="novoAgendamento()">+ Novo Agendamento</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let cache = { servicos: [], profissionais: [] };
+    let sel = { svc: null, pro: null, slot: null };
+
+    const api = async (method, path, body) => {
+      const r = await fetch('/api' + path, { method, headers: { 'Content-Type': 'application/json' }, body: body ? JSON.stringify(body) : undefined });
+      if (!r.ok) { const e = await r.json().catch(() => ({ detail: 'Erro' })); throw new Error(e.detail || 'Erro'); }
+      return r.json();
+    };
+
+    function toast(msg, err = false) {
+      const t = document.getElementById('toast');
+      document.getElementById('t-msg').textContent = msg;
+      document.getElementById('t-icon').textContent = err ? '✕' : '✓';
+      t.className = 'toast show' + (err ? ' err' : '');
+      clearTimeout(t._t); t._t = setTimeout(() => t.className = 'toast', 3500);
+    }
+
+    // FUNÇÃO PARA FORMATAR TELEFONE
+    function formatarTelefone(input) {
+      let valor = input.value.replace(/\D/g, ''); // Remove tudo que não é número
+
+      if (valor.length <= 10) {
+        // Formato (XX) XXXX-XXXX
+        valor = valor.replace(/^(\d{2})(\d)/, '($1) $2');
+        valor = valor.replace(/(\d{4})(\d)/, '$1-$2');
+      } else {
+        // Formato (XX) XXXXX-XXXX
+        valor = valor.replace(/^(\d{2})(\d)/, '($1) $2');
+        valor = valor.replace(/(\d{5})(\d)/, '$1-$2');
+      }
+
+      input.value = valor;
+    }
+
+    // INIT
+    async function applyConfig() {
+      try {
+        const cfg = await fetch('/api/config').then(r => r.json());
+        if (cfg.nome) {
+          document.querySelectorAll('.logo').forEach(el => { el.textContent = cfg.nome || ''; });
+          const logoImg = document.getElementById('cl-logo-img');
+          if (logoImg) {
+            if (cfg.logo) logoImg.innerHTML = `<img src="${cfg.logo}" style="height:48px;object-fit:contain;display:block" alt="${cfg.nome}">`;
+            else logoImg.innerHTML = '';
+          }
+          document.title = cfg.nome + ' \u2014 Agendar';
+        }
+        const sloganEl = document.getElementById('cl-slogan');
+        if (sloganEl) sloganEl.textContent = cfg.slogan || '';
+      } catch (e) { }
+    }
+    async function init() {
+      document.getElementById('cl-data').min = new Date().toISOString().split('T')[0];
+      try {
+        [cache.servicos, cache.profissionais] = await Promise.all([api('GET', '/servicos'), api('GET', '/profissionais')]);
+        renderSvcList();
+      } catch (e) { document.getElementById('svc-list').innerHTML = '<div class="empty">Erro ao carregar. Tente novamente.</div>'; }
+    }
+
+    function renderSvcList() {
+      const el = document.getElementById('svc-list');
+      if (!cache.servicos.length) { el.innerHTML = '<div class="empty">Nenhum serviço disponível</div>'; return; }
+      // agrupa por categoria
+      const cats = {};
+      cache.servicos.forEach(s => { if (!cats[s.categoria]) cats[s.categoria] = []; cats[s.categoria].push(s); });
+      el.innerHTML = Object.entries(cats).map(([cat, svcs]) => `
+    <div style="margin-bottom:1rem">
+      <div style="font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--lt);font-weight:500;margin-bottom:.6rem">${cat}</div>
+      ${svcs.map(s => `
+        <div class="svc-option ${sel.svc === s.id ? 'selected' : ''}" onclick="selectSvc(${s.id})">
+          <div style="display:flex;align-items:center;gap:.8rem">
+            <span style="font-size:1.3rem">${s.icone}</span>
+            <div>
+              <div style="font-weight:500;font-size:.9rem">${s.nome}</div>
+              <div style="font-size:.75rem;color:var(--lt)">${s.descricao} · ⏱ ${s.duracao} min</div>
+            </div>
+          </div>
+          <span style="font-family:'Cormorant Garamond',serif;font-size:1.1rem;color:var(--dr);font-weight:600;white-space:nowrap">R$ ${s.preco.toFixed(2)}</span>
+        </div>`).join('')}
+    </div>`).join('');
+    }
+
+    function selectSvc(id) {
+      sel.svc = id; sel.pro = null; sel.slot = null;
+      renderSvcList();
+      renderProList();
+      document.getElementById('sec-pro').style.display = 'block';
+      document.getElementById('sec-slot').style.display = 'none';
+      document.getElementById('sec-confirm').style.display = 'none';
+      document.getElementById('sec-pro').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function renderProList() {
+      const el = document.getElementById('pro-list');
+      const filtered = sel.svc ? cache.profissionais.filter(p => (p.servicos || []).includes(sel.svc)) : [];
+      if (!filtered.length) { el.innerHTML = '<div class="empty">Nenhum profissional disponível</div>'; return; }
+      el.innerHTML = filtered.map(p => `
+    <div class="pro-option ${sel.pro === p.id ? 'selected' : ''}" onclick="selectPro(${p.id})">
+      <div class="mini-av" style="background:${p.cor}">${p.nome.charAt(0)}</div>
+      <div>
+        <div style="font-weight:500;font-size:.9rem">${p.nome}</div>
+        <div style="font-size:.75rem;color:var(--lt)">${p.especialidade} · ${p.horario_inicio}–${p.horario_fim}</div>
+      </div>
+      ${sel.pro === p.id ? '<span style="margin-left:auto;color:var(--gold);font-size:1.2rem">✓</span>' : ''}
+    </div>`).join('');
+    }
+
+    function selectPro(id) {
+      sel.pro = id; sel.slot = null;
+      renderProList();
+      document.getElementById('sec-slot').style.display = 'block';
+      renderSlots();
+      document.getElementById('sec-slot').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function onDataChange() { sel.slot = null; renderSlots(); updateConfirm(); }
+
+    async function renderSlots() {
+      const c = document.getElementById('slots-container');
+      const data = document.getElementById('cl-data').value;
+      if (!sel.svc || !sel.pro || !data) {
+        c.innerHTML = '<p style="font-size:.85rem;color:var(--lt)">Selecione serviço, profissional e data para ver os horários disponíveis.</p>';
+        return;
+      }
+      c.innerHTML = '<div class="loading">Verificando horários...</div>';
+      try {
+        const svc = cache.servicos.find(s => s.id === sel.svc);
+        const dur = svc?.duracao || 60;
+        const resp = await api('GET', `/agendamentos/horarios-ocupados?profissional_id=${sel.pro}&data=${data}`);
+
+        if (!resp.disponivel) {
+          c.innerHTML = '<p style="font-size:.85rem;color:var(--lt)">Profissional não atende nesta data. Escolha outra data.</p>';
+          return;
+        }
+
+        // CARREGAR TOLERÂNCIA DAS CONFIGURAÇÕES
+        let toleranciaGlobal = 30; // valor padrão
+        try {
+          const cfg = await fetch('/api/config/public').then(r => r.json());
+          toleranciaGlobal = cfg.tolerancia_minutos || 30;
+        } catch (e) {
+          console.log('Erro ao carregar tolerância, usando 30');
+        }
+
+        // Gera slots com a mesma lógica do admin
+        let cur = t2m(resp.hora_inicio);
+        const fim = t2m(resp.hora_fim);
+        const intIni = resp.hora_intervalo ? t2m(resp.hora_intervalo) : null;
+        const intFim = intIni ? intIni + 60 : null;
+        const ocp = resp.ocupados || [];
+
+        // ✅ CORREÇÃO DO FUSO HORÁRIO
+        const hojeLocal = new Date().toLocaleDateString('pt-BR', {
+          timeZone: 'America/Sao_Paulo',
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit'
+        }).split('/').reverse().join('-');
+
+        // Obter hora local de Brasília
+        const agoraBrasilia = new Date().toLocaleTimeString('pt-BR', {
+          timeZone: 'America/Sao_Paulo',
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false
+        }).split(':');
+
+        const minutosAgora = parseInt(agoraBrasilia[0]) * 60 + parseInt(agoraBrasilia[1]);
+
+        console.log('Data selecionada:', data);
+        console.log('Data local (Brasil):', hojeLocal);
+        console.log('Hora local (Brasil):', agoraBrasilia.join(':'), 'minutos:', minutosAgora);
+        console.log('Tolerância configurada:', toleranciaGlobal, 'minutos');
+
+        const slots = [];
+        while (cur + dur <= fim) {
+          const bloqueadoIntervalo = intIni && !(cur + dur <= intIni || cur >= intFim);
+          if (!bloqueadoIntervalo) {
+            const horario = m2t(cur);
+            const ocupado = ocp.some(o => {
+              const os = t2m(o.hora), oe = os + o.duracao;
+              return cur < oe && cur + dur > os;
+            });
+            // ✅ VERIFICA SE O HORÁRIO RESPEITA A TOLERÂNCIA CONFIGURADA
+            const horaMinimaPermitida = minutosAgora + toleranciaGlobal;
+            const passado = (data === hojeLocal) && (cur < horaMinimaPermitida);
+
+            slots.push({ horario, ocupado, passado });
+          }
+          cur += dur; // usa duração do serviço
+        }
+
+        if (!slots.length) {
+          c.innerHTML = '<p style="font-size:.85rem;color:var(--lt)">Sem horários disponíveis nesta data.</p>';
+          return;
+        }
+
+        c.innerHTML = '<div class="slots-grid">' +
+          slots.map(s => {
+            const indisponivel = s.ocupado || s.passado;
+            const cls = 'slot' + (indisponivel ? ' occupied' : '') + (sel.slot === s.horario && !indisponivel ? ' selected' : '');
+            const attr = indisponivel ? '' : ` data-slot="${s.horario}"`;
+
+            // Mensagem mais informativa para o cliente
+            let label = '';
+            if (s.ocupado) {
+              label = '<br><small>ocupado</small>';
+            } else if (s.passado && data === hojeLocal) {
+              label = `<br><small>necessário ${toleranciaGlobal} min</small>`;
+            }
+
+            return `<div class="${cls}"${attr}>${s.horario}${label}</div>`;
+          }).join('') +
+          '</div>';
+
+        // Adicionar logs para debug
+        console.log('Slots gerados:', slots.filter(s => !s.ocupado && !s.passado).map(s => s.horario));
+
+      } catch (e) {
+        console.error('Erro ao renderizar slots:', e);
+        c.innerHTML = '<p style="color:#c05050;font-size:.83rem">Erro ao verificar horários</p>';
+      }
+    }
+    function selectSlot(h) {
+      sel.slot = h;
+      renderSlots();
+      updateConfirm();
+      document.getElementById('sec-confirm').style.display = 'block';
+      document.getElementById('sec-confirm').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function updateConfirm() {
+      if (!sel.svc || !sel.pro || !sel.slot) { document.getElementById('sec-confirm').style.display = 'none'; return; }
+      const svc = cache.servicos.find(s => s.id === sel.svc);
+      const pro = cache.profissionais.find(p => p.id === sel.pro);
+      const data = document.getElementById('cl-data').value;
+      document.getElementById('resumo-itens').innerHTML = `
+    <div style="display:grid;gap:.5rem">
+      <div style="display:flex;justify-content:space-between;padding:.4rem 0;border-bottom:1px solid rgba(160,112,96,.2)"><span style="color:var(--lt);font-size:.85rem">Serviço</span><span style="font-weight:500">${svc ? svc.icone + ' ' + svc.nome : '—'}</span></div>
+      <div style="display:flex;justify-content:space-between;padding:.4rem 0;border-bottom:1px solid rgba(160,112,96,.2)"><span style="color:var(--lt);font-size:.85rem">Profissional</span><span style="font-weight:500">${pro ? pro.nome : '—'}</span></div>
+      <div style="display:flex;justify-content:space-between;padding:.4rem 0;border-bottom:1px solid rgba(160,112,96,.2)"><span style="color:var(--lt);font-size:.85rem">Data e hora</span><span style="font-weight:500">${fmtDate(data)} às ${sel.slot}</span></div>
+      <div style="display:flex;justify-content:space-between;padding:.4rem 0"><span style="color:var(--lt);font-size:.85rem">Valor</span><span style="font-family:'Cormorant Garamond',serif;font-size:1.2rem;color:var(--dr);font-weight:600">${svc ? 'R$ ' + svc.preco.toFixed(2) : '—'}</span></div>
+    </div>`;
+    }
+
+    async function confirmarAgendamento() {
+      const nome = document.getElementById('cl-nome').value.trim();
+      const tel = document.getElementById('cl-tel').value.trim();
+      const data = document.getElementById('cl-data').value;
+      if (!nome || !tel) { toast('Preencha seu nome e WhatsApp', true); return; }
+      if (!data) { toast('Selecione uma data', true); return; }
+      if (!sel.svc || !sel.pro || !sel.slot) { toast('Selecione serviço, profissional e horário', true); return; }
+      try {
+        const r = await api('POST', '/agendamentos', { cliente_nome: nome, cliente_tel: tel, cliente_email: document.getElementById('cl-email').value, servico_id: sel.svc, profissional_id: sel.pro, data, hora: sel.slot, observacao: document.getElementById('cl-obs').value });
+        // mostrar tela de sucesso
+        const svc = cache.servicos.find(s => s.id === sel.svc);
+        const pro = cache.profissionais.find(p => p.id === sel.pro);
+        document.getElementById('confirm-details').innerHTML = `
+      <div class="confirm-row"><span class="key">Cliente</span><span class="val">${nome}</span></div>
+      <div class="confirm-row"><span class="key">Serviço</span><span class="val">${svc ? svc.icone + ' ' + svc.nome : '—'}</span></div>
+      <div class="confirm-row"><span class="key">Profissional</span><span class="val">${pro ? pro.nome : '—'}</span></div>
+      <div class="confirm-row"><span class="key">Data e Hora</span><span class="val">${fmtDate(data)} às ${sel.slot}</span></div>
+      <div class="confirm-row"><span class="key">Valor</span><span class="val" style="color:var(--gold)">${svc ? 'R$ ' + svc.preco.toFixed(2) : '—'}</span></div>`;
+        if (r.whatsapp_link) document.getElementById('wpp-link').href = r.whatsapp_link;
+        document.getElementById('booking-container').style.display = 'none';
+        document.getElementById('success-container').style.display = 'block';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } catch (e) { toast(e.message, true); }
+    }
+
+    function novoAgendamento() {
+      sel = { svc: null, pro: null, slot: null };
+      ['cl-nome', 'cl-tel', 'cl-email', 'cl-data', 'cl-obs'].forEach(id => document.getElementById(id).value = '');
+      document.getElementById('booking-container').style.display = 'block';
+      document.getElementById('success-container').style.display = 'none';
+      document.getElementById('sec-pro').style.display = 'none';
+      document.getElementById('sec-slot').style.display = 'none';
+      document.getElementById('sec-confirm').style.display = 'none';
+      renderSvcList();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function t2m(t) { const [h, m] = t.split(':').map(Number); return h * 60 + m; }
+    function m2t(m) { return String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0'); }
+    function fmtDate(d) { if (!d) return '—'; const [y, mo, day] = d.split('-'); return `${day}/${mo}/${y}`; }
+
+    // Adiciona o event listener para os slots
+    document.addEventListener('click', function (e) {
+      const slot = e.target.closest('[data-slot]');
+      if (slot) {
+        selectSlot(slot.dataset.slot);
+      }
+    });
+
+    applyConfig();
+    init();
+  </script>
+</body>
+
+</html>

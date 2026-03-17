@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Belle Salão — Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/tema.css">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'DM Sans',sans-serif;min-height:100vh;background:var(--dark);display:flex;align-items:center;justify-content:center}
+  body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 30% 40%,rgba(200,169,110,.12) 0%,transparent 60%),radial-gradient(ellipse at 70% 80%,rgba(160,112,96,.1) 0%,transparent 50%)}
+  .box{position:relative;background:rgba(255,255,255,.04);border:1px solid rgba(200,169,110,.2);border-radius:20px;padding:3rem 2.5rem;width:100%;max-width:380px;backdrop-filter:blur(10px)}
+  .logo{font-family:'Cormorant Garamond',serif;font-size:2rem;color:var(--brand,var(--gold));font-style:italic;text-align:center;margin-bottom:.3rem}
+  .sub{text-align:center;font-size:.78rem;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.12em;margin-bottom:2.5rem}
+  .form-group{margin-bottom:1.2rem}
+  label{display:block;font-size:.75rem;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.4);margin-bottom:.5rem}
+  input{width:100%;padding:.8rem 1rem;background:rgba(255,255,255,.06);border:1.5px solid rgba(200,169,110,.2);border-radius:10px;color:#fff;font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none;transition:border-color .2s}
+  input:focus{border-color:var(--gold)}
+  .btn{width:100%;padding:.9rem;background:var(--gold);border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:.9rem;font-weight:500;color:var(--dark);cursor:pointer;transition:all .2s;margin-top:.5rem}
+  .btn:hover{background:var(--dr);color:#fff}
+  .err{color:#e08080;font-size:.82rem;margin-top:.8rem;text-align:center;min-height:1.2rem}
+  .lock{text-align:center;font-size:2rem;margin-bottom:1.5rem;opacity:.5}
+</style>
+
+</head>
+<body>
+<div class="box">
+  <div class="lock">🔐</div>
+  <div class="logo" id="login-logo"></div>
+  <div class="sub" id="login-sub">Área Administrativa</div>
+  <div class="form-group">
+    <label>Usuário</label>
+    <input type="text" id="user" placeholder="admin" autocomplete="username">
+  </div>
+  <div class="form-group">
+    <label>Senha</label>
+    <input type="password" id="pass" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+  </div>
+  <button class="btn" onclick="doLogin()">Entrar</button>
+  <div class="err" id="err"></div>
+</div>
+<script>
+// se já tem token válido, vai direto pro painel
+if(localStorage.getItem('salon_token')) window.location='/admin';
+
+// Carregar nome do salão
+fetch('/api/config').then(r=>r.json()).then(cfg=>{
+  const logoEl = document.querySelector('.logo');
+  if(cfg.logo){
+    logoEl.innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;gap:.4rem"><img src="${cfg.logo}" style="height:64px;object-fit:contain" alt="${cfg.nome||''}"><span>${cfg.nome||''}</span></div>`;
+  } else if(cfg.nome){
+    logoEl.textContent = cfg.nome;
+  }
+  if(cfg.nome) document.title = cfg.nome + ' — Admin';
+  if(cfg.slogan) document.getElementById('login-sub').textContent = cfg.slogan;
+  else document.getElementById('login-sub').textContent = 'Área Administrativa';
+}).catch(()=>{});
+
+async function doLogin(){
+  const u=document.getElementById('user').value.trim();
+  const p=document.getElementById('pass').value;
+  document.getElementById('err').textContent='';
+  if(!u||!p){document.getElementById('err').textContent='Preencha usuário e senha';return;}
+  try{
+    const r=await fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({usuario:u,senha:p})});
+    if(!r.ok){const e=await r.json();document.getElementById('err').textContent=e.detail||'Erro';return;}
+    const d=await r.json();
+    localStorage.setItem('salon_token',d.token);
+    localStorage.setItem('salon_user',d.usuario);
+    window.location='/admin';
+  }catch(e){document.getElementById('err').textContent='Erro de conexão';}
+}
+</script>
+</body>
+</html>

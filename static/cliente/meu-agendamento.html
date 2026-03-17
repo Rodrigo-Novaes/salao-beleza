@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Meu Agendamento — Belle Salão</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="/tema.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--dark);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(ellipse at 40% 30%, rgba(200, 169, 110, .1) 0%, transparent 60%)
+    }
+
+    .card {
+      position: relative;
+      background: rgba(255, 255, 255, .04);
+      border: 1px solid rgba(200, 169, 110, .15);
+      border-radius: 20px;
+      padding: 2rem;
+      width: 100%;
+      max-width: 480px;
+      backdrop-filter: blur(10px)
+    }
+
+    .logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.5rem;
+      color: var(--brand, var(--gold));
+      font-style: italic;
+      text-align: center;
+      margin-bottom: .2rem
+    }
+
+    .sub {
+      text-align: center;
+      font-size: .75rem;
+      color: rgba(255, 255, 255, .3);
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      margin-bottom: 2rem
+    }
+
+    label {
+      display: block;
+      font-size: .75rem;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: rgba(255, 255, 255, .4);
+      margin-bottom: .4rem
+    }
+
+    input {
+      width: 100%;
+      padding: .8rem 1rem;
+      background: rgba(255, 255, 255, .06);
+      border: 1.5px solid rgba(200, 169, 110, .2);
+      border-radius: 10px;
+      color: #fff;
+      font-family: 'DM Sans', sans-serif;
+      font-size: .95rem;
+      outline: none;
+      transition: border-color .2s;
+      letter-spacing: .1em;
+      text-transform: uppercase
+    }
+
+    input:focus {
+      border-color: var(--gold)
+    }
+
+    .btn {
+      width: 100%;
+      padding: .85rem;
+      border: none;
+      border-radius: 10px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: .9rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all .2s;
+      margin-top: .8rem
+    }
+
+    .btn-gold {
+      background: var(--gold);
+      color: var(--dark)
+    }
+
+    .btn-gold:hover {
+      background: var(--dr);
+      color: #fff
+    }
+
+    .btn-outline {
+      background: transparent;
+      border: 1.5px solid rgba(200, 169, 110, .3);
+      color: var(--gold)
+    }
+
+    .btn-outline:hover {
+      border-color: var(--gold)
+    }
+
+    .btn-red {
+      background: transparent;
+      border: 1.5px solid #e08080;
+      color: #e08080
+    }
+
+    .btn-red:hover {
+      background: #e08080;
+      color: #fff
+    }
+
+    .btn-green {
+      background: #2d7a2d;
+      color: #fff
+    }
+
+    .btn-green:hover {
+      background: #1a5c1a
+    }
+
+    .appt-box {
+      background: rgba(255, 255, 255, .05);
+      border-radius: 14px;
+      padding: 1.3rem;
+      margin: 1.2rem 0
+    }
+
+    .appt-row {
+      display: flex;
+      justify-content: space-between;
+      padding: .4rem 0;
+      border-bottom: 1px solid rgba(255, 255, 255, .06);
+      font-size: .88rem
+    }
+
+    .appt-row:last-child {
+      border-bottom: none
+    }
+
+    .appt-row .k {
+      color: rgba(255, 255, 255, .4)
+    }
+
+    .appt-row .v {
+      color: #fff;
+      font-weight: 500
+    }
+
+    .err {
+      color: #e08080;
+      font-size: .82rem;
+      margin-top: .6rem;
+      text-align: center;
+      min-height: 1.2rem
+    }
+
+    .ok {
+      color: #90ee90;
+      font-size: .85rem;
+      margin-top: .6rem;
+      text-align: center
+    }
+
+    .back {
+      text-align: center;
+      margin-top: 1.2rem
+    }
+
+    .back a {
+      color: rgba(255, 255, 255, .35);
+      font-size: .8rem;
+      text-decoration: none
+    }
+
+    .back a:hover {
+      color: var(--gold)
+    }
+
+    .step {
+      display: none
+    }
+
+    .step.active {
+      display: block
+    }
+
+    .badge {
+      display: inline-block;
+      padding: .2rem .6rem;
+      border-radius: 20px;
+      font-size: .73rem;
+      font-weight: 500
+    }
+
+    .b-conf {
+      background: #e8f5e8;
+      color: #2d7a2d
+    }
+
+    .b-canc {
+      background: #ffeaea;
+      color: #c05050
+    }
+
+    .b-pend {
+      background: #fff8e0;
+      color: #8a6800
+    }
+
+    .b-conc {
+      background: #e8f0ff;
+      color: #3a5fb0
+    }
+
+    .remarcar-form {
+      margin-top: 1rem
+    }
+
+    .remarcar-form .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: .8rem;
+      margin-bottom: .8rem
+    }
+
+    .slots-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: .4rem;
+      margin-top: .5rem
+    }
+
+    .slot {
+      padding: .5rem;
+      text-align: center;
+      border-radius: 7px;
+      cursor: pointer;
+      border: 1.5px solid rgba(200, 169, 110, .2);
+      font-size: .8rem;
+      color: rgba(255, 255, 255, .7);
+      transition: all .15s;
+      background: rgba(255, 255, 255, .03)
+    }
+
+    .slot:hover:not(.ocp) {
+      border-color: var(--gold);
+      color: #fff
+    }
+
+    .slot.sel {
+      background: var(--gold);
+      color: var(--dark);
+      border-color: var(--gold);
+      font-weight: 600
+    }
+
+    .slot.ocp {
+      opacity: .3;
+      cursor: not-allowed;
+      text-decoration: line-through
+    }
+  </style>
+</head>
+
+<body>
+  <div class="card">
+    <div style="display:flex;flex-direction:column;align-items:center;gap:.3rem;margin-bottom:.5rem">
+      <div id="ma-logo-img"></div>
+      <div class="logo" id="ma-logo"></div>
+      <div id="cfg-slogan-display"
+        style="text-align:center;font-size:.68rem;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.1em">
+      </div>
+    </div>
+    <div class="sub">Gerenciar Agendamento</div>
+
+    <!-- STEP 1: código -->
+    <div class="step active" id="step-codigo">
+      <div style="margin-bottom:1.2rem">
+        <label>Código do agendamento</label>
+        <input type="text" id="inp-codigo" placeholder="EX: AB12CD" maxlength="6"
+          oninput="this.value=this.value.toUpperCase()" onkeydown="if(event.key==='Enter')buscar()">
+      </div>
+      <button class="btn btn-gold" onclick="buscar()">Buscar Agendamento</button>
+      <div class="err" id="err1"></div>
+      <div class="back"><a href="/">← Fazer novo agendamento</a></div>
+    </div>
+
+    <!-- STEP 2: detalhes -->
+    <div class="step" id="step-detalhes">
+      <div class="appt-box" id="appt-info"></div>
+      <div id="acoes">
+        <button class="btn btn-green" onclick="showRemarcar()" id="btn-remarcar">📅 Remarcar</button>
+        <button class="btn btn-red" onclick="confirmarCancelar()" id="btn-cancelar">✕ Cancelar Agendamento</button>
+      </div>
+      <div class="err" id="err2"></div>
+      <div class="back"><a href="#" onclick="voltarStep1()">← Voltar</a></div>
+    </div>
+
+    <!-- STEP 3: remarcar -->
+    <div class="step" id="step-remarcar">
+      <div style="color:rgba(255,255,255,.6);font-size:.85rem;margin-bottom:1rem">Escolha a nova data e horário:</div>
+      <div class="remarcar-form">
+        <div class="form-row">
+          <div>
+            <label>Nova Data</label>
+            <input type="date" id="nova-data" onchange="carregarSlotsRemarcar()">
+          </div>
+        </div>
+        <label>Horários disponíveis</label>
+        <div id="slots-remarcar" style="margin-top:.5rem;color:rgba(255,255,255,.35);font-size:.82rem">Selecione uma
+          data</div>
+      </div>
+      <button class="btn btn-gold" onclick="confirmarRemarcar()" id="btn-confirmar-remarcar"
+        style="display:none">Confirmar Nova Data</button>
+      <button class="btn btn-outline" onclick="showStep('step-detalhes')" style="margin-top:.5rem">Voltar</button>
+      <div class="err" id="err3"></div>
+    </div>
+
+    <!-- STEP 4: sucesso -->
+    <div class="step" id="step-sucesso">
+      <div style="text-align:center;padding:1rem 0">
+        <div style="font-size:2.5rem;margin-bottom:.8rem" id="suc-icon">✅</div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:1.5rem;color:var(--gold);margin-bottom:.5rem"
+          id="suc-title">Pronto!</div>
+        <div style="color:rgba(255,255,255,.5);font-size:.88rem" id="suc-msg"></div>
+      </div>
+      <div class="back" style="margin-top:1.5rem"><a href="/">← Fazer novo agendamento</a></div>
+    </div>
+  </div>
+
+  <script>
+    let apptData = null;
+    let slotSelecionado = null;
+    let toleranciaGlobal = 30; // Valor padrão
+
+    const api = async (method, path, body) => {
+      const r = await fetch('/api' + path, { method, headers: { 'Content-Type': 'application/json' }, body: body ? JSON.stringify(body) : undefined });
+      if (!r.ok) { const e = await r.json().catch(() => ({ detail: 'Erro' })); throw new Error(e.detail || 'Erro'); }
+      return r.json();
+    };
+
+    function showStep(id) { document.querySelectorAll('.step').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
+
+    async function buscar() {
+      const cod = document.getElementById('inp-codigo').value.trim();
+      document.getElementById('err1').textContent = '';
+      if (!cod) { document.getElementById('err1').textContent = 'Digite o código'; return; }
+      try {
+        apptData = await api('GET', '/agendamentos/por-codigo/' + cod);
+        renderDetalhes();
+        showStep('step-detalhes');
+      } catch (e) { document.getElementById('err1').textContent = e.message; }
+    }
+
+    function renderDetalhes() {
+      const a = apptData;
+      const dataFmt = a.data ? a.data.split('-').reverse().join('/') : '-';
+      const statusMap = { confirmado: 'b-conf', pendente: 'b-pend', concluido: 'b-conc', cancelado: 'b-canc' };
+      const statusLabel = { confirmado: 'Confirmado', pendente: 'Pendente', concluido: 'Concluído', cancelado: 'Cancelado' };
+      document.getElementById('appt-info').innerHTML = `
+    <div class="appt-row"><span class="k">Cliente</span><span class="v">${a.cliente_nome}</span></div>
+    <div class="appt-row"><span class="k">Serviço</span><span class="v">${a.icone} ${a.svc_nome}</span></div>
+    <div class="appt-row"><span class="k">Profissional</span><span class="v">${a.pro_nome}</span></div>
+    <div class="appt-row"><span class="k">Data e Hora</span><span class="v">${dataFmt} às ${a.hora}</span></div>
+    <div class="appt-row"><span class="k">Valor</span><span class="v" style="color:var(--gold)">R$ ${parseFloat(a.preco).toFixed(2)}</span></div>
+    <div class="appt-row"><span class="k">Status</span><span class="v"><span class="badge ${statusMap[a.status] || ''}">${statusLabel[a.status] || a.status}</span></span></div>`;
+      const finalizado = ['cancelado', 'concluido'].includes(a.status);
+      document.getElementById('acoes').style.display = finalizado ? 'none' : 'block';
+    }
+
+    function showRemarcar() {
+      document.getElementById('nova-data').min = new Date().toISOString().split('T')[0];
+      slotSelecionado = null;
+      document.getElementById('nova-data').value = '';
+      document.getElementById('slots-remarcar').innerHTML = '<span style="color:rgba(255,255,255,.35);font-size:.82rem">Selecione uma data</span>';
+      document.getElementById('btn-confirmar-remarcar').style.display = 'none';
+      document.getElementById('err3').textContent = '';
+      showStep('step-remarcar');
+    }
+
+    async function carregarSlotsRemarcar() {
+      const data = document.getElementById('nova-data').value;
+      if (!data || !apptData) return;
+
+      const el = document.getElementById('slots-remarcar');
+      el.innerHTML = '<span style="font-size:.8rem;color:rgba(255,255,255,.35)">Verificando…</span>';
+      slotSelecionado = null;
+      document.getElementById('btn-confirmar-remarcar').style.display = 'none';
+      document.getElementById('err3').textContent = '';
+
+      try {
+        const response = await api('GET', `/agendamentos/horarios-ocupados?profissional_id=${apptData.profissional_id}&data=${data}`);
+
+        if (!response.disponivel) {
+          el.innerHTML = '<span style="color:#e08080;font-size:.82rem">Profissional não disponível nesta data</span>';
+          return;
+        }
+
+        // Garantir que ocupados seja um array
+        const ocupados = Array.isArray(response.ocupados) ? response.ocupados : [];
+        const duracao = apptData.duracao || 60;
+
+        const slots = [];
+        let cur = t2m(response.hora_inicio);
+        const fim = t2m(response.hora_fim);
+        const invInicio = t2m(response.hora_intervalo);
+        const invFim = invInicio + 60; // Considerando 1h de intervalo
+
+        // VERIFICAR SE A DATA SELECIONADA É HOJE
+        const hoje = new Date();
+        const hojeStr = hoje.toISOString().split('T')[0];
+        const isHoje = data === hojeStr;
+
+        // Pega a hora atual se for hoje
+        const horaAtual = isHoje ? hoje.getHours() * 60 + hoje.getMinutes() : 0;
+
+        // USA A TOLERÂNCIA GLOBAL CARREGADA DAS CONFIGURAÇÕES
+        const horaMinimaPermitida = horaAtual + toleranciaGlobal;
+
+        console.log('É hoje?', isHoje, 'Hora atual:', m2t(horaAtual), 'Hora mínima permitida:', m2t(horaMinimaPermitida), 'Tolerância:', toleranciaGlobal);
+
+        // GERAR HORÁRIOS USANDO A DURAÇÃO DO SERVIÇO COMO INCREMENTO
+        while (cur + duracao <= fim) {
+          const termino = cur + duracao;
+
+          // Verificar se NÃO está no intervalo de almoço
+          const duranteIntervalo = (cur >= invInicio && cur < invFim) ||
+            (termino > invInicio && termino <= invFim) ||
+            (cur < invInicio && termino > invInicio);
+
+          // Verificar se o horário é válido (não passou da hora mínima permitida)
+          const horarioValido = !isHoje || cur >= horaMinimaPermitida;
+
+          if (!duranteIntervalo && horarioValido) {
+            slots.push(m2t(cur));
+          }
+
+          cur += duracao;
+        }
+
+        if (slots.length === 0) {
+          if (isHoje) {
+            el.innerHTML = `<span style="color:#e08080;font-size:.82rem">Nenhum horário disponível para hoje (necessário ${toleranciaGlobal} min de antecedência)</span>`;
+          } else {
+            el.innerHTML = '<span style="color:#e08080;font-size:.82rem">Nenhum horário disponível nesta data</span>';
+          }
+          return;
+        }
+
+        el.innerHTML = `<div class="slots-grid">${slots.map(sl => {
+          const sm = t2m(sl);
+
+          // Verificar se o horário está ocupado
+          const busy = ocupados.some(o => {
+            // Garantir que o objeto tenha as propriedades necessárias
+            const horaOcupada = o.hora || o;
+            const duracaoOcupada = o.duracao || duracao;
+            const om = t2m(horaOcupada);
+
+            // Verificar conflito, excluindo o próprio horário atual
+            return sm < om + duracaoOcupada &&
+              sm + duracao > om &&
+              horaOcupada !== apptData.hora;
+          });
+
+          return `<div class="slot${busy ? ' ocp' : ''}${slotSelecionado === sl ? ' sel' : ''}" 
+                onclick="${busy ? '' : `selSlot('${sl}')`}">${sl}</div>`;
+        }).join('')}</div>`;
+
+      } catch (e) {
+        console.error('Erro ao carregar slots:', e);
+        el.innerHTML = `<span style="color:#e08080;font-size:.82rem">Erro: ${e.message}</span>`;
+      }
+    }
+
+    function selSlot(h) {
+      slotSelecionado = h;
+      document.querySelectorAll('.slot').forEach(el => el.classList.remove('sel'));
+      event.target.classList.add('sel');
+      document.getElementById('btn-confirmar-remarcar').style.display = 'block';
+    }
+
+    async function confirmarRemarcar() {
+      const novaData = document.getElementById('nova-data').value;
+      document.getElementById('err3').textContent = '';
+      if (!novaData || !slotSelecionado) { document.getElementById('err3').textContent = 'Selecione data e horário'; return; }
+      try {
+        const r = await api('POST', '/agendamentos/remarcar-cliente', { codigo: apptData.codigo_acesso, nova_data: novaData, nova_hora: slotSelecionado });
+        document.getElementById('suc-icon').textContent = '📅';
+        document.getElementById('suc-title').textContent = 'Remarcado!';
+        document.getElementById('suc-msg').textContent = `Novo horário: ${r.nova_data} às ${r.nova_hora}`;
+        showStep('step-sucesso');
+      } catch (e) { document.getElementById('err3').textContent = e.message; }
+    }
+
+    async function confirmarCancelar() {
+      document.getElementById('err2').textContent = '';
+      if (!confirm('Tem certeza que deseja cancelar este agendamento?')) return;
+      try {
+        const r = await api('POST', '/agendamentos/cancelar-cliente', { codigo: apptData.codigo_acesso });
+        document.getElementById('suc-icon').textContent = '❌';
+        document.getElementById('suc-title').textContent = 'Cancelado';
+        document.getElementById('suc-msg').textContent = `Agendamento de ${r.cliente} cancelado com sucesso.`;
+        showStep('step-sucesso');
+      } catch (e) { document.getElementById('err2').textContent = e.message; }
+    }
+
+    function voltarStep1() { apptData = null; document.getElementById('inp-codigo').value = ''; document.getElementById('err1').textContent = ''; showStep('step-codigo'); }
+    function t2m(t) { const [h, m] = t.split(':').map(Number); return h * 60 + m; }
+    function m2t(m) { return String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0'); }
+
+    async function applyConfig() {
+      try {
+        // USA O NOVO ENDPOINT PÚBLICO
+        const cfg = await fetch('/api/config/public').then(r => r.json());
+        const logo = document.getElementById('ma-logo');
+        const logoImg = document.getElementById('ma-logo-img');
+        if (logo) logo.textContent = cfg.nome || '';
+        if (logoImg) {
+          if (cfg.logo) logoImg.innerHTML = `<img src="${cfg.logo}" style="height:52px;object-fit:contain;display:block;margin:0 auto" alt="${cfg.nome}">`;
+          else logoImg.innerHTML = '';
+        }
+        if (cfg.nome) document.title = 'Meu Agendamento — ' + cfg.nome;
+        if (cfg.slogan) { const s = document.getElementById('cfg-slogan-display'); if (s) s.textContent = cfg.slogan; }
+
+        // CARREGA A TOLERÂNCIA DAS CONFIGURAÇÕES
+        if (cfg.tolerancia_minutos) {
+          toleranciaGlobal = cfg.tolerancia_minutos;
+        }
+        console.log('Tolerância configurada:', toleranciaGlobal, 'minutos');
+
+      } catch (e) {
+        console.log('Erro ao carregar configurações:', e);
+      }
+    }
+    applyConfig();
+  </script>
+</body>
+
+</html>

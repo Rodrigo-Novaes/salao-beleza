@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Agenda do Profissional — Belle Salão</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root{--cream:#faf7f2;--warm:#f0e8d8;--rose:#c9a99a;--dr:#a07060;--gold:#c8a96e;--dark:#2a1f1a;--mid:#6b5045;--lt:#9a8070;--wh:#fff;--sh:0 4px 30px rgba(42,31,26,.08)}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--dark);min-height:100vh}
+  header{background:var(--dark);padding:0 2rem;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+  .logo{font-family:'Cormorant Garamond',serif;font-size:1.4rem;color:var(--gold);font-style:italic}
+  .logo img{height:36px;object-fit:contain}
+  .back-btn{color:rgba(255,255,255,.5);font-size:.82rem;text-decoration:none;padding:.4rem .9rem;border:1px solid rgba(255,255,255,.15);border-radius:20px;transition:all .2s}
+  .back-btn:hover{color:var(--gold);border-color:var(--gold)}
+  .container{max-width:1000px;margin:0 auto;padding:2rem}
+  .page-header{margin-bottom:2rem}
+  .page-header h1{font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:300}
+  .page-header p{color:var(--lt);font-size:.9rem;margin-top:.3rem}
+
+  /* PRO SELECTOR */
+  .pro-bar{display:flex;gap:.8rem;flex-wrap:wrap;margin-bottom:2rem}
+  .pro-chip{display:flex;align-items:center;gap:.6rem;padding:.5rem 1rem;border-radius:30px;border:1.5px solid rgba(160,112,96,.2);cursor:pointer;transition:all .2s;background:var(--wh);box-shadow:var(--sh)}
+  .pro-chip:hover,.pro-chip.active{border-color:var(--gold);background:var(--warm)}
+  .pro-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0}
+  .pro-chip span{font-size:.85rem;font-weight:500}
+
+  .layout{display:grid;grid-template-columns:1fr 340px;gap:1.5rem}
+  @media(max-width:800px){.layout{grid-template-columns:1fr}}
+
+  /* CALENDAR */
+  .cal-card{background:var(--wh);border-radius:16px;box-shadow:var(--sh);overflow:hidden;border:1px solid rgba(200,169,110,.1)}
+  .cal-header{background:var(--dark);padding:1rem 1.3rem;display:flex;align-items:center;justify-content:space-between}
+  .cal-month{font-family:'Cormorant Garamond',serif;font-size:1.3rem;color:var(--gold)}
+  .cal-nav{background:transparent;border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.7);border-radius:6px;width:30px;height:30px;cursor:pointer;font-size:1rem;transition:all .2s}
+  .cal-nav:hover{border-color:var(--gold);color:var(--gold)}
+  .cal-weekdays{display:grid;grid-template-columns:repeat(7,1fr);background:rgba(200,169,110,.08)}
+  .cal-wd{text-align:center;font-size:.7rem;font-weight:600;color:var(--lt);padding:.5rem 0;text-transform:uppercase;letter-spacing:.04em}
+  .cal-days{display:grid;grid-template-columns:repeat(7,1fr);padding:.5rem}
+  .cal-day{aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:10px;cursor:pointer;transition:all .18s;position:relative;margin:2px;font-size:.88rem}
+  .cal-day:hover:not(.empty):not(.past){transform:scale(1.05)}
+  .cal-day.empty{cursor:default}
+  .cal-day.past{opacity:.35;cursor:default}
+  .cal-day.today{outline:2px solid var(--gold);outline-offset:1px}
+  .cal-day.disponivel{background:rgba(168,210,168,.25);color:#2d6a2d;font-weight:500}
+  .cal-day.disponivel:hover{background:rgba(168,210,168,.5)}
+  .cal-day.indisponivel{background:rgba(224,128,128,.15);color:#a04040}
+  .cal-day.indisponivel:hover{background:rgba(224,128,128,.3)}
+  .cal-day.excecao-disp{background:rgba(100,180,255,.2);color:#1a5fa0;font-weight:600}
+  .cal-day.excecao-indisp{background:rgba(220,100,100,.2);color:#a03030;font-weight:600}
+  .cal-day.selected{outline:2.5px solid var(--dark);outline-offset:1px}
+  .cal-day .dot{width:5px;height:5px;border-radius:50%;background:currentColor;position:absolute;bottom:4px;opacity:.6}
+  .cal-legend{display:flex;gap:1rem;padding:.8rem 1.2rem;background:rgba(200,169,110,.04);flex-wrap:wrap}
+  .leg-item{display:flex;align-items:center;gap:.4rem;font-size:.72rem;color:var(--lt)}
+  .leg-dot{width:10px;height:10px;border-radius:3px;flex-shrink:0}
+
+  /* SIDE PANEL */
+  .side-card{background:var(--wh);border-radius:16px;box-shadow:var(--sh);padding:1.4rem;border:1px solid rgba(200,169,110,.1);margin-bottom:1.2rem}
+  .side-card h3{font-family:'Cormorant Garamond',serif;font-size:1.15rem;font-weight:400;margin-bottom:1.1rem;color:var(--dark)}
+  .form-group{display:flex;flex-direction:column;gap:.35rem;margin-bottom:.9rem}
+  label{font-size:.75rem;font-weight:500;color:var(--mid);letter-spacing:.04em;text-transform:uppercase}
+  input,select{padding:.6rem .85rem;border:1.5px solid rgba(160,112,96,.2);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.88rem;color:var(--dark);background:var(--cream);outline:none;transition:border-color .2s;width:100%}
+  input:focus,select:focus{border-color:var(--gold);background:var(--wh)}
+  .time-row{display:grid;grid-template-columns:1fr 1fr;gap:.6rem}
+  .btn{padding:.6rem 1.2rem;border:none;border-radius:8px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.83rem;font-weight:500;transition:all .2s;display:inline-flex;align-items:center;gap:.4rem}
+  .btn-primary{background:var(--dark);color:var(--wh)}.btn-primary:hover{background:var(--mid)}
+  .btn-gold{background:var(--gold);color:var(--dark)}.btn-gold:hover{background:var(--dr);color:var(--wh)}
+  .btn-outline{background:transparent;border:1.5px solid var(--rose);color:var(--dr)}.btn-outline:hover{background:var(--rose);color:var(--wh)}
+  .btn-red{background:transparent;border:1.5px solid #e08080;color:#c05050}.btn-red:hover{background:#e08080;color:var(--wh)}
+  .btn-full{width:100%;justify-content:center}
+  .btn-sm{padding:.35rem .8rem;font-size:.77rem}
+
+  /* DIAS DA SEMANA CONFIG */
+  .dia-row{display:flex;align-items:center;gap:.5rem;padding:.6rem 0;border-bottom:1px solid var(--warm)}
+  .dia-row:last-child{border-bottom:none}
+  .dia-toggle{width:36px;height:20px;border-radius:10px;background:#ddd;border:none;cursor:pointer;position:relative;transition:background .2s;flex-shrink:0}
+  .dia-toggle.on{background:var(--gold)}
+  .dia-toggle::after{content:'';width:16px;height:16px;border-radius:50%;background:#fff;position:absolute;top:2px;left:2px;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+  .dia-toggle.on::after{left:18px}
+  .dia-nome{font-size:.83rem;font-weight:500;min-width:38px}
+  .dia-times{display:flex;gap:.3rem;align-items:center}
+  .dia-times input{padding:.3rem .4rem;font-size:.82rem;width:95px;min-width:95px}
+  .dia-sep{font-size:.75rem;color:var(--lt)}
+
+  /* EXCECOES LIST */
+  .exc-item{display:flex;align-items:center;justify-content:space-between;padding:.55rem 0;border-bottom:1px solid var(--warm);font-size:.83rem}
+  .exc-item:last-child{border-bottom:none}
+  .exc-badge{padding:.15rem .5rem;border-radius:10px;font-size:.7rem;font-weight:500}
+  .exc-disp{background:#e8f5e8;color:#2d7a2d}
+  .exc-indisp{background:#ffeaea;color:#c05050}
+
+  /* SELECTED DAY INFO */
+  .sel-day-info{background:var(--warm);border-radius:10px;padding:1rem;margin-bottom:.9rem;font-size:.85rem}
+  .sel-day-title{font-family:'Cormorant Garamond',serif;font-size:1.1rem;margin-bottom:.3rem}
+
+  .toast{position:fixed;bottom:2rem;right:2rem;background:var(--dark);color:var(--wh);padding:1rem 1.4rem;border-radius:12px;font-size:.87rem;box-shadow:0 8px 40px rgba(0,0,0,.2);z-index:999;transform:translateY(80px);opacity:0;transition:all .3s;display:flex;align-items:center;gap:.5rem}
+  .toast.show{transform:translateY(0);opacity:1}.toast.err{background:#8b2020}
+  .divider{height:1px;background:var(--warm);margin:.8rem 0}
+  .empty-pro{text-align:center;padding:3rem;color:var(--lt)}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo" id="header-logo">✦ Belle Salão</div>
+  <a href="/admin" class="back-btn">← Voltar ao painel</a>
+</header>
+
+<div class="toast" id="toast"><span id="t-icon">✓</span><span id="t-msg"></span></div>
+
+<div class="container">
+  <div class="page-header">
+    <h1>Agenda dos Profissionais</h1>
+    <p>Configure dias e horários disponíveis para agendamento</p>
+  </div>
+
+  <!-- SELETOR DE PROFISSIONAL -->
+  <div class="pro-bar" id="pro-bar">
+    <div class="empty-pro">Carregando profissionais…</div>
+  </div>
+
+  <div id="main-content" style="display:none">
+    <div class="layout">
+
+      <!-- CALENDÁRIO -->
+      <div>
+        <div class="cal-card">
+          <div class="cal-header">
+            <button class="cal-nav" onclick="mudarMes(-1)">‹</button>
+            <div class="cal-month" id="cal-month-label"></div>
+            <button class="cal-nav" onclick="mudarMes(1)">›</button>
+          </div>
+          <div class="cal-weekdays">
+            <div class="cal-wd">Seg</div><div class="cal-wd">Ter</div><div class="cal-wd">Qua</div>
+            <div class="cal-wd">Qui</div><div class="cal-wd">Sex</div>
+            <div class="cal-wd" style="color:var(--rose)">Sáb</div>
+            <div class="cal-wd" style="color:var(--rose)">Dom</div>
+          </div>
+          <div class="cal-days" id="cal-days"></div>
+          <div class="cal-legend">
+            <div class="leg-item"><div class="leg-dot" style="background:rgba(168,210,168,.5)"></div>Disponível (padrão)</div>
+            <div class="leg-item"><div class="leg-dot" style="background:rgba(224,128,128,.25)"></div>Indisponível (padrão)</div>
+            <div class="leg-item"><div class="leg-dot" style="background:rgba(100,180,255,.35)"></div>Exceção — disponível</div>
+            <div class="leg-item"><div class="leg-dot" style="background:rgba(220,100,100,.3)"></div>Exceção — bloqueado</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PAINEL LATERAL -->
+      <div>
+
+        <!-- DIA SELECIONADO -->
+        <div class="side-card" id="card-dia-sel" style="display:none">
+          <div class="sel-day-info">
+            <div class="sel-day-title" id="sel-day-title"></div>
+            <div id="sel-day-status" style="font-size:.8rem;color:var(--lt)"></div>
+          </div>
+          <h3>Configurar este dia</h3>
+          <div class="form-group">
+            <label>Disponibilidade</label>
+            <select id="exc-ativo">
+              <option value="1">✅ Disponível</option>
+              <option value="0">❌ Bloqueado / Folga</option>
+            </select>
+          </div>
+          <div id="exc-times">
+            <div class="time-row" style="margin-bottom:.6rem">
+              <div class="form-group" style="margin:0"><label>Início</label><input type="time" id="exc-ini" value="09:00"></div>
+              <div class="form-group" style="margin:0"><label>Fim</label><input type="time" id="exc-fim" value="18:00"></div>
+            </div>
+            <div class="form-group">
+              <label>Intervalo / Almoço</label>
+              <input type="time" id="exc-inv" value="12:00">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Motivo (opcional)</label>
+            <input type="text" id="exc-motivo" placeholder="Ex: Feriado, Evento...">
+          </div>
+          <div style="display:flex;gap:.6rem">
+            <button class="btn btn-gold btn-full" onclick="salvarExcecao()">Salvar este dia</button>
+          </div>
+          <div class="divider"></div>
+          <button class="btn btn-outline btn-full btn-sm" onclick="removerExcecao()" id="btn-rem-exc" style="display:none">Remover exceção (voltar ao padrão)</button>
+        </div>
+
+        <!-- DIAS DA SEMANA -->
+        <div class="side-card">
+          <h3>Padrão semanal</h3>
+          <p style="font-size:.78rem;color:var(--lt);margin-bottom:1rem">Define a disponibilidade padrão. Exceções por data têm prioridade.</p>
+          <div id="semana-rows"></div>
+          <button class="btn btn-primary btn-full" style="margin-top:.8rem" onclick="salvarSemana()">💾 Salvar padrão semanal</button>
+        </div>
+
+        <!-- EXCEÇÕES FUTURAS -->
+        <div class="side-card">
+          <h3>Exceções cadastradas</h3>
+          <div id="exc-list"><div style="font-size:.82rem;color:var(--lt)">Nenhuma exceção</div></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const token = localStorage.getItem('salon_token');
+if(!token){ window.location='/admin/login'; }
+
+let pros = [];
+let proAtual = null;
+let mesAtual = new Date();
+let diasMes = [];
+let excecoes = [];
+let diaSelecionado = null;
+const DIAS_NOME = ['Segunda','Terça','Quarta','Quinta','Sexta','Sábado','Domingo'];
+const DIAS_CURTO = ['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];
+
+const api = async (method, path, body) => {
+  const r = await fetch('/api'+path, {
+    method,
+    headers: {'Content-Type':'application/json','Authorization':'Bearer '+token},
+    body: body ? JSON.stringify(body) : undefined
+  });
+  if(r.status===401){ localStorage.removeItem('salon_token'); window.location='/admin/login'; return; }
+  if(!r.ok){ const e=await r.json().catch(()=>({detail:'Erro'})); throw new Error(e.detail||'Erro'); }
+  return r.status===204 ? null : r.json();
+};
+
+function toast(msg, err=false){
+  const t=document.getElementById('toast');
+  document.getElementById('t-msg').textContent=msg;
+  document.getElementById('t-icon').textContent=err?'✕':'✓';
+  t.className='toast show'+(err?' err':'');
+  clearTimeout(t._t); t._t=setTimeout(()=>t.className='toast',3000);
+}
+
+// ─── INIT ────────────────────────────────────────────────────────────────────
+async function init(){
+  try{
+    pros = await api('GET','/profissionais');
+    renderProBar();
+    if(pros.length) selecionarPro(pros[0]);
+  }catch(e){ toast(e.message,true); }
+}
+
+function renderProBar(){
+  const bar = document.getElementById('pro-bar');
+  if(!pros.length){ bar.innerHTML='<div class="empty-pro">Nenhum profissional cadastrado</div>'; return; }
+  bar.innerHTML = pros.map(p=>`
+    <div class="pro-chip ${proAtual?.id===p.id?'active':''}" onclick="selecionarPro(${JSON.stringify(p).replace(/"/g,'&quot;')})">
+      <div class="pro-dot" style="background:${p.cor}"></div>
+      <span>${p.nome}</span>
+    </div>`).join('');
+}
+
+async function selecionarPro(p){
+  proAtual = p;
+  diaSelecionado = null;
+  document.getElementById('card-dia-sel').style.display='none';
+  renderProBar();
+  document.getElementById('main-content').style.display='block';
+  await Promise.all([carregarMes(), carregarSemana(), carregarExcecoes()]);
+}
+
+// ─── CALENDÁRIO ──────────────────────────────────────────────────────────────
+function nomeMes(d){ return d.toLocaleDateString('pt-BR',{month:'long',year:'numeric'}); }
+
+async function carregarMes(){
+  const mes = mesAtual.toISOString().slice(0,7);
+  document.getElementById('cal-month-label').textContent = nomeMes(mesAtual).charAt(0).toUpperCase() + nomeMes(mesAtual).slice(1);
+  try{
+    diasMes = await api('GET',`/disponibilidade/${proAtual.id}/mes?mes=${mes}`);
+    renderCalendario();
+  }catch(e){ toast(e.message,true); }
+}
+
+function renderCalendario(){
+  const grid = document.getElementById('cal-days');
+  const ano = mesAtual.getFullYear();
+  const mes = mesAtual.getMonth();
+  const primeiroDia = new Date(ano, mes, 1).getDay(); // 0=dom..6=sab
+  // Converter para segunda=0
+  const offset = primeiroDia === 0 ? 6 : primeiroDia - 1;
+  const hoje = new Date().toISOString().split('T')[0];
+
+  let html = '';
+  for(let i=0;i<offset;i++) html += '<div class="cal-day empty"></div>';
+
+  diasMes.forEach(d => {
+    const dataDate = new Date(d.data+'T12:00:00');
+    const isPast = d.data < hoje;
+    const isToday = d.data === hoje;
+    const isSelected = d.data === diaSelecionado;
+    const hasExc = d.fonte === 'excecao';
+    let cls = 'cal-day';
+    if(isPast) cls += ' past';
+    else if(d.ativo && hasExc) cls += ' excecao-disp';
+    else if(!d.ativo && hasExc) cls += ' excecao-indisp';
+    else if(d.ativo) cls += ' disponivel';
+    else cls += ' indisponivel';
+    if(isToday) cls += ' today';
+    if(isSelected) cls += ' selected';
+    const num = dataDate.getDate();
+    const dot = hasExc ? '<div class="dot"></div>' : '';
+    html += `<div class="${cls}" onclick="${isPast?'':'clickDia(\''+d.data+'\')'}" title="${d.hora_inicio||''}${d.hora_fim?' – '+d.hora_fim:''}${d.motivo?' | '+d.motivo:''}">
+      ${num}${dot}
+    </div>`;
+  });
+  grid.innerHTML = html;
+}
+
+function mudarMes(delta){
+  mesAtual = new Date(mesAtual.getFullYear(), mesAtual.getMonth()+delta, 1);
+  diaSelecionado = null;
+  document.getElementById('card-dia-sel').style.display='none';
+  carregarMes();
+}
+
+function clickDia(data){
+  diaSelecionado = data;
+  renderCalendario();
+  mostrarPainelDia(data);
+}
+
+function mostrarPainelDia(data){
+  const d = diasMes.find(x=>x.data===data);
+  if(!d) return;
+  const card = document.getElementById('card-dia-sel');
+  card.style.display='block';
+  const [ano,mes,dia] = data.split('-');
+  const dataDate = new Date(data+'T12:00:00');
+  const nomeDia = dataDate.toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'});
+  document.getElementById('sel-day-title').textContent = nomeDia.charAt(0).toUpperCase()+nomeDia.slice(1);
+
+  const statusTxt = d.ativo
+    ? `✅ Disponível — ${d.hora_inicio} às ${d.hora_fim}${d.hora_intervalo?' | intervalo '+d.hora_intervalo:''}`
+    : `❌ Indisponível${d.motivo?' — '+d.motivo:''}`;
+  document.getElementById('sel-day-status').textContent = `Fonte: ${d.fonte} | ${statusTxt}`;
+
+  document.getElementById('exc-ativo').value = d.ativo ? '1' : '0';
+  document.getElementById('exc-ini').value = d.hora_inicio || proAtual.horario_inicio || '09:00';
+  document.getElementById('exc-fim').value = d.hora_fim || proAtual.horario_fim || '18:00';
+  document.getElementById('exc-inv').value = d.hora_intervalo || proAtual.horario_intervalo || '12:00';
+  document.getElementById('exc-motivo').value = d.motivo || '';
+  document.getElementById('exc-times').style.display = d.ativo ? 'block' : 'none';
+  document.getElementById('exc-ativo').onchange = () => {
+    document.getElementById('exc-times').style.display = document.getElementById('exc-ativo').value==='1' ? 'block' : 'none';
+  };
+
+  const temExc = d.fonte === 'excecao';
+  document.getElementById('btn-rem-exc').style.display = temExc ? 'block' : 'none';
+  card.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+async function salvarExcecao(){
+  if(!diaSelecionado||!proAtual) return;
+  const ativo = document.getElementById('exc-ativo').value === '1';
+  const body = {
+    profissional_id: proAtual.id,
+    data: diaSelecionado,
+    ativo,
+    hora_inicio: ativo ? document.getElementById('exc-ini').value : null,
+    hora_fim: ativo ? document.getElementById('exc-fim').value : null,
+    hora_intervalo: ativo ? document.getElementById('exc-inv').value : null,
+    motivo: document.getElementById('exc-motivo').value
+  };
+  try{
+    await api('POST','/disponibilidade/excecao', body);
+    await Promise.all([carregarMes(), carregarExcecoes()]);
+    toast('Dia configurado!');
+  }catch(e){ toast(e.message,true); }
+}
+
+async function removerExcecao(){
+  if(!diaSelecionado||!proAtual) return;
+  const exc = excecoes.find(e=>e.data===diaSelecionado);
+  if(!exc) return;
+  try{
+    await api('DELETE',`/disponibilidade/excecao/${exc.id}`);
+    await Promise.all([carregarMes(), carregarExcecoes()]);
+    document.getElementById('card-dia-sel').style.display='none';
+    diaSelecionado=null;
+    toast('Exceção removida — voltou ao padrão');
+  }catch(e){ toast(e.message,true); }
+}
+
+// ─── SEMANA ───────────────────────────────────────────────────────────────────
+let configSemana = [];
+
+async function carregarSemana(){
+  try{
+    const rows = await api('GET',`/disponibilidade/${proAtual.id}/semana`);
+    // Montar config para todos os 7 dias
+    configSemana = Array.from({length:7},(_,i)=>{
+      const r = rows.find(x=>x.dia_semana===i);
+      return r ? {...r} : {
+        dia_semana: i, ativo: i<5, // seg-sex ligados por padrão
+        hora_inicio: proAtual.horario_inicio||'09:00',
+        hora_fim: proAtual.horario_fim||'18:00',
+        hora_intervalo: proAtual.horario_intervalo||'12:00'
+      };
+    });
+    renderSemana();
+  }catch(e){ toast(e.message,true); }
+}
+
+function renderSemana(){
+  document.getElementById('semana-rows').innerHTML = configSemana.map((d,i)=>`
+    <div class="dia-row" id="dia-row-${i}">
+      <button class="dia-toggle ${d.ativo?'on':''}" onclick="toggleDia(${i})" id="tog-${i}"></button>
+      <span class="dia-nome">${DIAS_CURTO[i]}</span>
+      <div class="dia-times" id="dia-times-${i}" style="${d.ativo?'':'opacity:.3;pointer-events:none'}">
+        <input type="time" value="${d.hora_inicio}" id="di-ini-${i}" onchange="configSemana[${i}].hora_inicio=this.value">
+        <span class="dia-sep">–</span>
+        <input type="time" value="${d.hora_fim}" id="di-fim-${i}" onchange="configSemana[${i}].hora_fim=this.value">
+        <span class="dia-sep" style="margin-left:.2rem" title="Intervalo/almoço">☕</span>
+        <input type="time" value="${d.hora_intervalo}" id="di-inv-${i}" onchange="configSemana[${i}].hora_intervalo=this.value">
+      </div>
+    </div>`).join('');
+}
+
+function toggleDia(i){
+  configSemana[i].ativo = !configSemana[i].ativo;
+  const tog = document.getElementById(`tog-${i}`);
+  const times = document.getElementById(`dia-times-${i}`);
+  tog.classList.toggle('on', configSemana[i].ativo);
+  times.style.opacity = configSemana[i].ativo ? '1' : '.3';
+  times.style.pointerEvents = configSemana[i].ativo ? 'auto' : 'none';
+}
+
+async function salvarSemana(){
+  // Capturar valores atuais dos inputs
+  configSemana.forEach((d,i)=>{
+    d.hora_inicio = document.getElementById(`di-ini-${i}`).value;
+    d.hora_fim = document.getElementById(`di-fim-${i}`).value;
+    d.hora_intervalo = document.getElementById(`di-inv-${i}`).value;
+  });
+  try{
+    await api('POST',`/disponibilidade/${proAtual.id}/semana`, configSemana);
+    await carregarMes();
+    toast('Padrão semanal salvo!');
+  }catch(e){ toast(e.message,true); }
+}
+
+// ─── EXCEÇÕES LIST ────────────────────────────────────────────────────────────
+async function carregarExcecoes(){
+  const mes = mesAtual.toISOString().slice(0,7);
+  try{
+    excecoes = await api('GET',`/disponibilidade/${proAtual.id}/excecoes?mes=${mes}`);
+    renderExcecoes();
+  }catch(e){}
+}
+
+function renderExcecoes(){
+  const el = document.getElementById('exc-list');
+  const futuras = excecoes.filter(e=>e.data>=new Date().toISOString().split('T')[0]);
+  if(!futuras.length){ el.innerHTML='<div style="font-size:.82rem;color:var(--lt)">Nenhuma exceção neste mês</div>'; return; }
+  el.innerHTML = futuras.map(e=>`
+    <div class="exc-item">
+      <div>
+        <div style="font-weight:500">${fmtDate(e.data)}</div>
+        <div style="font-size:.75rem;color:var(--lt)">${e.ativo?(e.hora_inicio+' – '+e.hora_fim):'Bloqueado'}${e.motivo?' · '+e.motivo:''}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:.5rem">
+        <span class="exc-badge ${e.ativo?'exc-disp':'exc-indisp'}">${e.ativo?'Disponível':'Bloqueado'}</span>
+        <button class="btn btn-red btn-sm" onclick="deletarExc(${e.id})">✕</button>
+      </div>
+    </div>`).join('');
+}
+
+async function deletarExc(id){
+  try{
+    await api('DELETE',`/disponibilidade/excecao/${id}`);
+    await Promise.all([carregarMes(), carregarExcecoes()]);
+    toast('Exceção removida');
+  }catch(e){ toast(e.message,true); }
+}
+
+function fmtDate(d){ const[y,m,day]=d.split('-'); return `${day}/${m}/${y}`; }
+
+// Carregar config
+(async()=>{
+  try{
+    const cfg = await fetch('/api/config').then(r=>r.json());
+    const el = document.getElementById('header-logo');
+    if(cfg.logo) el.innerHTML = `<img src="${cfg.logo}" alt="${cfg.nome}">`;
+    else if(cfg.nome) el.textContent = '✦ ' + cfg.nome;
+    if(cfg.nome) document.title = cfg.nome + ' — Agenda';
+  }catch(e){}
+})();
+init();
+</script>
+</body>
+</html>
