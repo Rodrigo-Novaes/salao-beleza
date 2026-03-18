@@ -1230,7 +1230,7 @@
           <div class="form-group">
             <label>Tolerância para cancelamento/remarcação (minutos)</label>
             <div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap">
-              <input type="number" id="cfg-tolerancia" min="0" max="1440" step="5" value="30" style="width:120px">
+              <input type="number" id="cfg-tolerancia" min="0" max="1440" step="1" value="30" style="width:120px">
               <span style="color:var(--lt);font-size:.85rem">minutos de antecedência mínima</span>
             </div>
             <p style="font-size:.75rem;color:var(--lt);margin-top:.3rem;line-height:1.4">
@@ -1713,7 +1713,7 @@
       <div class="stat-box"><div class="stat-num">${s.total}</div><div class="stat-lbl">Total</div></div>
       <div class="stat-box"><div class="stat-num">${s.confirmados}</div><div class="stat-lbl">Confirmados</div></div>
       <div class="stat-box"><div class="stat-num">${s.profissionais}</div><div class="stat-lbl">Profissionais</div></div>
-      <div class="stat-box"><div class="stat-num" style="font-size:1.3rem">R$${parseFloat(s.receita).toFixed(0)}</div><div class="stat-lbl">Receita Total</div></div>`;
+      <div class="stat-box"><div class="stat-num" style="font-size:1.3rem">R$ ${formatarMoedaBR(s.receita)}</div><div class="stat-lbl">Receita Total</div></div>`;
       } catch (e) { }
     }
 
@@ -1741,7 +1741,18 @@
       input.value = valor;
     }
 
+    // FUNÇÃO PARA FORMATAR MOEDA NO PADRÃO BRASILEIRO
+    function formatarMoedaBR(valor) {
+      if (valor === null || valor === undefined || valor === '—') return '—';
+      let num = typeof valor === 'string' ? parseFloat(valor) : valor;
+      if (isNaN(num)) return '—';
+      return num.toLocaleString('pt-BR', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+    }
     // NOVA FUNÇÃO: renderAgenda com filtros inteligentes
+    // NOVA FUNÇÃO: renderAgenda com botão de WhatsApp (corrigido)
     async function renderAgenda() {
       const fd = document.getElementById('filter-data').value;
       const busca = document.getElementById('filter-busca')?.value?.toLowerCase() || '';
@@ -1752,15 +1763,9 @@
       try {
         let appts = await api('GET', '/agendamentos' + (fd ? '?data=' + fd : ''));
 
-        // ✅ FILTRO INTELIGENTE:
-        // - Se NÃO tiver busca, remove concluídos e cancelados (mostra só confirmado/pendente)
-        // - Se tiver busca, mostra TODOS os resultados que correspondem à busca
         if (!busca) {
           appts = appts.filter(a => a.status === 'confirmado' || a.status === 'pendente');
         }
-        // Se tiver busca, NÃO filtra por status - mostra tudo que encontrar
-
-        // FILTRO POR BUSCA TEXTUAL (se houver busca)
         if (busca) {
           appts = appts.filter(a => {
             const texto = `
@@ -1785,30 +1790,64 @@
         const sm = { confirmado: 'b-conf', pendente: 'b-pend', concluido: 'b-conc', cancelado: 'b-canc' };
         const sl = { confirmado: 'Confirmado', pendente: 'Pendente', concluido: 'Concluído', cancelado: 'Cancelado' };
 
-        tbody.innerHTML = appts.map(a => `<tr>
-      <td>
-        <strong>${a.cliente_nome}</strong><br>
-        <span style="font-size:.78rem;color:var(--lt)">${a.cliente_tel}</span><br>
-        <span title="Clique para copiar o código" onclick="copiarCodigo('${a.codigo_acesso}')" style="font-size:.72rem;background:#f0e8d8;color:var(--dr);padding:.1rem .4rem;border-radius:6px;cursor:pointer;font-family:monospace;letter-spacing:.05em">🔑 ${a.codigo_acesso || '—'}</span>
-      </td>
-      <td>${a.servico_icone || ''} ${a.servico_nome || '—'}</td>
-      <td>${a.profissional_nome ? '<span class="color-dot" style="background:' + a.profissional_cor + '"></span>' + a.profissional_nome : '—'}</td>
-      <td>${fmtDate(a.data)}<br><span style="font-size:.8rem;color:var(--lt)">${a.hora}</span></td>
-      <td style="font-weight:600;color:var(--dr)">${a.preco ? 'R$ ' + parseFloat(a.preco).toFixed(2) : '—'}</td>
-      <td><select class="select-status" onchange="atualizarStatus(${a.id},this.value)">
-        <option value="confirmado" ${a.status === 'confirmado' ? 'selected' : ''}>Confirmado</option>
-        <option value="pendente" ${a.status === 'pendente' ? 'selected' : ''}>Pendente</option>
-        <option value="concluido" ${a.status === 'concluido' ? 'selected' : ''}>Concluído</option>
-        <option value="cancelado" ${a.status === 'cancelado' ? 'selected' : ''}>Cancelado</option>
-      </select></td>
-      <td style="display:flex;gap:.3rem">
-        <button class="btn btn-outline btn-xs" title="Editar" onclick='editarAgendamento(${JSON.stringify(a)})'>✏️</button>
-        <button class="btn btn-danger btn-xs" title="Excluir" onclick="excluirAgendamento(${a.id})">✕</button>
-      </td>
-    </tr>`).join('');
-      } catch (e) { toast(e.message, true); }
-    }
+        tbody.innerHTML = appts.map(a => {
+          const telefoneLimpo = a.cliente_tel ? a.cliente_tel.replace(/\D/g, '') : '';
+          const telefoneWpp = telefoneLimpo.length <= 11 ? '55' + telefoneLimpo : telefoneLimpo;
 
+          // MENSAGEM CORRIGIDA - APENAS UMA VEZ
+          const mensagemCancelamento = encodeURIComponent(
+            `Olá ${a.cliente_nome}! 💇\n\n` +
+            `Infelizmente precisamos cancelar seu agendamento do dia ${fmtDate(a.data)} às ${a.hora}.\n\n` +
+            `Pedimos desculpas pelo inconveniente. Por favor, entre em contato para remarcarmos um novo horário.\n\n` +
+            `Agradecemos a compreensão! ✨`
+          );
+
+          const linkWpp = `https://wa.me/${telefoneWpp}?text=${mensagemCancelamento}`;
+
+          return `<tr>
+            <td>
+              <strong>${a.cliente_nome}</strong><br>
+              <span style="font-size:.78rem;color:var(--lt)">${a.cliente_tel}</span><br>
+              <span title="Clique para copiar o código" onclick="copiarCodigo('${a.codigo_acesso}')" style="font-size:.72rem;background:#f0e8d8;color:var(--dr);padding:.1rem .4rem;border-radius:6px;cursor:pointer;font-family:monospace;letter-spacing:.05em">🔑 ${a.codigo_acesso || '—'}</span>
+            </td>
+            <td>${a.servico_icone || ''} ${a.servico_nome || '—'}</td>
+            <td>${a.profissional_nome ? '<span class="color-dot" style="background:' + a.profissional_cor + '"></span>' + a.profissional_nome : '—'}</td>
+            <td>${fmtDate(a.data)}<br><span style="font-size:.8rem;color:var(--lt)">${a.hora}</span></td>
+            <td style="font-weight:600;color:var(--dr)">${a.preco ? 'R$ ' + formatarMoedaBR(a.preco) : '—'}</td>
+            <td><select class="select-status" onchange="atualizarStatus(${a.id},this.value)">
+              <option value="confirmado" ${a.status === 'confirmado' ? 'selected' : ''}>Confirmado</option>
+              <option value="pendente" ${a.status === 'pendente' ? 'selected' : ''}>Pendente</option>
+              <option value="concluido" ${a.status === 'concluido' ? 'selected' : ''}>Concluído</option>
+              <option value="cancelado" ${a.status === 'cancelado' ? 'selected' : ''}>Cancelado</option>
+            </select></td>
+            <td style="display:flex;gap:.3rem; align-items:center;">
+              <!-- BOTÃO EDITAR (mantendo classe original, só adicionando tamanho fixo) -->
+              <button class="btn btn-outline btn-xs" title="Editar" onclick='editarAgendamento(${JSON.stringify(a)})' 
+                      style="width:32px; height:32px; padding:0; display:inline-flex; align-items:center; justify-content:center;">
+                ✏️
+              </button>
+              <!-- BOTÃO EXCLUIR (mantendo classe original, só adicionando tamanho fixo) -->
+              <button class="btn btn-danger btn-xs" title="Excluir" onclick="excluirAgendamento(${a.id})"
+                      style="width:32px; height:32px; padding:0; display:inline-flex; align-items:center; justify-content:center;">
+                ✕
+              </button>
+              <!-- BOTÃO WHATSAPP CORRIGIDO - COMO BUTTON (SEM LINK VISÍVEL) -->
+              <button class="btn btn-outline btn-xs" 
+                      style="border-color:#25d366; color:#25d366; width:32px; height:32px; padding:0; display:inline-flex; align-items:center; justify-content:center; cursor:pointer;"
+                      onclick="window.open('${linkWpp}', '_blank')"
+                      title="Avisar cliente sobre cancelamento"
+                      onmouseover="this.style.backgroundColor='#25d366'; this.style.color='#fff'; this.querySelector('img').style.filter='brightness(0) invert(1)';"
+                      onmouseout="this.style.backgroundColor='transparent'; this.style.color='#25d366'; this.querySelector('img').style.filter='none';">
+                <img src="https://img.icons8.com/color/48/000000/whatsapp--v1.png" style="width:18px; height:18px; transition:filter 0.2s;">
+              </button>
+            </td>
+          </tr>`;
+        }).join('');
+
+      } catch (e) {
+        toast(e.message, true);
+      }
+    }
     async function atualizarStatus(id, status) {
       try {
         await api('PATCH', '/agendamentos/' + id + '/status', { status });
@@ -1840,7 +1879,7 @@
       <div style="font-size:.8rem;color:var(--lt);margin-bottom:.8rem;line-height:1.5">${s.descricao}</div>
       <span class="tag">${s.categoria}</span>
       <div style="display:flex;justify-content:space-between;align-items:center;margin-top:.8rem">
-        <span style="font-family:'DM Sans',sans-serif;font-size:1.1rem;color:var(--dr);font-weight:700">R$ ${s.preco.toFixed(2)}</span>
+        <span style="font-family:'DM Sans',sans-serif;font-size:1.1rem;color:var(--dr);font-weight:700">R$ ${formatarMoedaBR(s.preco)}</span>
         <span style="font-size:.78rem;color:var(--lt)">⏱ ${s.duracao} min</span>
       </div>
       <div class="divider"></div>
@@ -2081,14 +2120,59 @@
       <div class="stat-box"><div class="stat-num">${d.totais.qtd}</div><div class="stat-lbl">Agendamentos</div></div>
       <div class="stat-box"><div class="stat-num">${d.totais.concluidos}</div><div class="stat-lbl">Concluídos</div></div>
       <div class="stat-box"><div class="stat-num">${d.totais.cancelados}</div><div class="stat-lbl">Cancelados</div></div>
-      <div class="stat-box"><div class="stat-num" style="font-size:1.3rem">R$${parseFloat(d.totais.receita).toFixed(0)}</div><div class="stat-lbl">Receita</div></div>`;
+      <div class="stat-box"><div class="stat-num" style="font-size:1.3rem">R$ ${formatarMoedaBR(d.totais.receita)}</div><div class="stat-lbl">Receita</div></div>`;
 
         // gráfico por dia
         if (chartDia) { chartDia.destroy(); }
         chartDia = new Chart(document.getElementById('chart-dia'), {
           type: 'bar',
-          data: { labels: d.por_dia.map(r => fmtDate(r.data)), datasets: [{ label: 'Receita R$', data: d.por_dia.map(r => r.receita), backgroundColor: 'rgba(200,169,110,.7)', borderColor: '#c8a96e', borderWidth: 1, borderRadius: 4 }] },
-          options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { callback: v => 'R$' + v } } }, responsive: true }
+          data: {
+            labels: d.por_dia.map(r => fmtDate(r.data)),
+            datasets: [{
+              label: 'Receita R$',
+              data: d.por_dia.map(r => r.receita),
+              backgroundColor: 'rgba(200,169,110,.7)',
+              borderColor: '#c8a96e',
+              borderWidth: 1,
+              borderRadius: 4
+            }]
+          },
+          options: {
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                callbacks: {
+                  label: function (context) {
+                    let label = context.dataset.label || '';
+                    if (label) {
+                      label += ': ';
+                    }
+                    if (context.parsed.y !== null) {
+                      label += 'R$ ' + context.parsed.y.toLocaleString('pt-BR', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                      });
+                    }
+                    return label;
+                  }
+                }
+              }
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                ticks: {
+                  callback: function (value) {
+                    return 'R$ ' + value.toLocaleString('pt-BR', {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2
+                    });
+                  }
+                }
+              }
+            },
+            responsive: true
+          }
         });
 
         // rank serviços
@@ -2097,7 +2181,7 @@
       <div class="rank-row">
         <span style="min-width:120px;font-size:.83rem">${r.icone} ${r.nome}</span>
         <div class="rank-bar-wrap"><div class="rank-bar" style="width:${(r.receita / maxS * 100).toFixed(0)}%"></div></div>
-        <span style="font-size:.82rem;color:var(--dr);font-family:'DM Sans',sans-serif;font-weight:600">R$${parseFloat(r.receita).toFixed(0)} <span style="color:var(--lt);font-size:.75rem">(${r.qtd}x)</span></span>
+        <span style="font-size:.82rem;color:var(--dr);font-family:'DM Sans',sans-serif;font-weight:600">R$ ${formatarMoedaBR(r.receita)} <span style="color:var(--lt);font-size:.75rem">(${r.qtd}x)</span></span>
       </div>`).join('') || '<p style="color:var(--lt);font-size:.85rem">Sem dados</p>';
 
         // rank profissionais
@@ -2106,7 +2190,7 @@
       <div class="rank-row">
         <span style="min-width:100px;font-size:.83rem"><span class="color-dot" style="background:${r.cor}"></span>${r.nome}</span>
         <div class="rank-bar-wrap"><div class="rank-bar" style="width:${(r.receita / maxP * 100).toFixed(0)}%;background:${r.cor}"></div></div>
-        <span style="font-size:.82rem;color:var(--dr);font-family:'DM Sans',sans-serif;font-weight:600">R$${parseFloat(r.receita).toFixed(0)}</span>
+        <span style="font-size:.82rem;color:var(--dr);font-family:'DM Sans',sans-serif;font-weight:600">R$ ${formatarMoedaBR(r.receita)}</span>
       </div>`).join('') || '<p style="color:var(--lt);font-size:.85rem">Sem dados</p>';
 
         // gráfico status
@@ -2440,7 +2524,14 @@
       const nome = document.getElementById('cfg-nome').value.trim();
       const slogan = document.getElementById('cfg-slogan').value.trim();
       const wpp = document.getElementById('cfg-wpp').value.trim();
-      const tolerancia = parseInt(document.getElementById('cfg-tolerancia').value) || 30;
+
+      // CORREÇÃO: permite valor 0
+      let tolerancia = parseInt(document.getElementById('cfg-tolerancia').value);
+      // Se não for número válido, usa 30
+      if (isNaN(tolerancia)) {
+        tolerancia = 30;
+      }
+
       const token = localStorage.getItem('salon_token');
       try {
         const resp = await fetch('/api/config', {
@@ -2450,7 +2541,7 @@
             nome,
             slogan,
             whatsapp: wpp,
-            tolerancia_minutos: tolerancia   // <-- ADICIONE ESTA LINHA
+            tolerancia_minutos: tolerancia
           })
         });
         if (!resp.ok) throw new Error('Erro ' + resp.status);

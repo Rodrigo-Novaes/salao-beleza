@@ -2576,43 +2576,129 @@
     };
 
     async function initAgendaPro() {
-      if (!cache.profissionais.length) {
-        try { cache.profissionais = await api('GET', '/profissionais'); } catch (e) { toast(e.message, true); return; }
+      // Carrega profissionais se necessário
+      if (!cache.profissionais || cache.profissionais.length === 0) {
+        try {
+          cache.profissionais = await api('GET', '/profissionais');
+        } catch (e) {
+          toast(e.message, true);
+        }
       }
+
+      // Sempre mostra o calendário (mesmo sem profissionais)
       renderApProBar();
-      if (cache.profissionais.length) await apSelecionarPro(cache.profissionais[0]);
+      AP.mes = AP.mes || new Date(); // Garante que AP.mes existe
+      atualizarTituloMes();
+
+      // Se não houver profissionais, apenas mostra calendário vazio
+      if (!cache.profissionais || cache.profissionais.length === 0) {
+        document.getElementById('ap-cal-days').innerHTML = gerarCalendarioVazio();
+        document.getElementById('ap-card-dia').style.display = 'none';
+        document.getElementById('ap-semana-rows').innerHTML = '';
+        document.getElementById('ap-exc-list').innerHTML = '<div style="font-size:.82rem;color:var(--lt)">Cadastre um profissional para configurar exceções</div>';
+        return;
+      }
+
+      // Se houver profissionais, seleciona o primeiro
+      if (cache.profissionais.length > 0) {
+        await apSelecionarPro(cache.profissionais[0]);
+      }
+    }
+
+    // Nova função auxiliar
+    function atualizarTituloMes() {
+      const titulo = apNomeMes(AP.mes).charAt(0).toUpperCase() + apNomeMes(AP.mes).slice(1);
+      document.getElementById('ap-month-label').textContent = titulo;
+    }
+
+    // Nova função para gerar calendário vazio
+    function gerarCalendarioVazio() {
+      const hoje = new Date();
+      const primeiroDia = new Date(AP.mes.getFullYear(), AP.mes.getMonth(), 1).getDay();
+      const offset = primeiroDia === 0 ? 6 : primeiroDia - 1;
+      const ultimoDia = new Date(AP.mes.getFullYear(), AP.mes.getMonth() + 1, 0).getDate();
+
+      let html = '';
+      // Dias em branco antes do primeiro dia do mês
+      for (let i = 0; i < offset; i++) html += '<div style="height:36px;margin:1px"></div>';
+
+      // Dias do mês (todos como indisponíveis/cinza)
+      for (let dia = 1; dia <= ultimoDia; dia++) {
+        const dataStr = `${AP.mes.getFullYear()}-${String(AP.mes.getMonth() + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
+        const isPast = dataStr < hoje;
+        const isToday = dataStr === hoje;
+
+        html += `<div
+      style="height:36px;display:flex;align-items:center;justify-content:center;border-radius:6px;
+             margin:1px;font-size:.78rem;position:relative;
+             background:${isPast ? 'transparent' : 'rgba(224,128,128,.15)'};
+             color:${isPast ? 'rgba(0,0,0,.2)' : '#a04040'};
+             ${isToday ? 'outline:2px solid var(--gold);outline-offset:1px;' : ''}">
+      ${dia}
+    </div>`;
+      }
+
+      return html;
     }
 
     function renderApProBar() {
       const bar = document.getElementById('ap-pro-bar');
-      bar.innerHTML = cache.profissionais.map(p => `
+
+      if (!cache.profissionais || cache.profissionais.length === 0) {
+        bar.innerHTML = '<div style="padding:.5rem 1rem;color:var(--lt);font-size:.82rem">👩 Nenhum profissional Cadastrado</div>';
+        return;
+      }
+
+      bar.innerHTML = cache.profissionais.map(p => {
+        if (!p) return '';
+        const isSelected = AP.pro && AP.pro.id === p.id;
+        return `
     <div onclick="apSelecionarPro(${JSON.stringify(p).replace(/"/g, '&quot;')})"
          style="display:flex;align-items:center;gap:.6rem;padding:.5rem 1rem;border-radius:30px;
-                border:1.5px solid ${AP.pro?.id === p.id ? 'var(--gold)' : 'rgba(160,112,96,.2)'};
-                background:${AP.pro?.id === p.id ? 'var(--warm)' : 'var(--wh)'};
+                border:1.5px solid ${isSelected ? 'var(--gold)' : 'rgba(160,112,96,.2)'};
+                background:${isSelected ? 'var(--warm)' : 'var(--wh)'};
                 cursor:pointer;box-shadow:var(--sh);transition:all .2s">
-      <div style="width:12px;height:12px;border-radius:50%;background:${p.cor};flex-shrink:0"></div>
-      <span style="font-size:.85rem;font-weight:500">${p.nome}</span>
-    </div>`).join('');
+      <div style="width:12px;height:12px;border-radius:50%;background:${p.cor || '#c9a99a'};flex-shrink:0"></div>
+      <span style="font-size:.85rem;font-weight:500">${p.nome || 'Sem nome'}</span>
+    </div>`;
+      }).join('');
     }
-
     async function apSelecionarPro(p) {
-      AP.pro = p; AP.diaSel = null;
+      if (!p || !p.id) {
+        toast('Profissional inválido', true);
+        return;
+      }
+
+      AP.pro = p;
+      AP.diaSel = null;
       document.getElementById('ap-card-dia').style.display = 'none';
       document.getElementById('ap-content').style.display = 'flex';
       renderApProBar();
-      await Promise.all([apCarregarMes(), apCarregarSemana(), apCarregarExcecoes()]);
+
+      // Carrega cada função individualmente
+      try { if (typeof apCarregarMes === 'function') await apCarregarMes(); } catch (e) { }
+      try { if (typeof apCarregarSemana === 'function') await apCarregarSemana(); } catch (e) { }
+      try { if (typeof apCarregarExcecoes === 'function') await apCarregarExcecoes(); } catch (e) { }
     }
 
     function apNomeMes(d) { return d.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' }); }
 
     async function apCarregarMes() {
+      // VERIFICAÇÃO CRÍTICA - Impede o erro
+      if (!AP.pro || !AP.pro.id) {
+        console.log('Nenhum profissional selecionado');
+        document.getElementById('ap-cal-days').innerHTML = ''; // Limpa o calendário
+        return;
+      }
+
       const mes = AP.mes.toISOString().slice(0, 7);
       document.getElementById('ap-month-label').textContent = apNomeMes(AP.mes).charAt(0).toUpperCase() + apNomeMes(AP.mes).slice(1);
       try {
         AP.diasMes = await api('GET', `/disponibilidade/${AP.pro.id}/mes?mes=${mes}`);
         apRenderCal();
-      } catch (e) { toast(e.message, true); }
+      } catch (e) {
+        toast(e.message, true);
+      }
     }
 
     function apRenderCal() {
@@ -2650,8 +2736,23 @@
     function apMudarMes(delta) {
       AP.mes = new Date(AP.mes.getFullYear(), AP.mes.getMonth() + delta, 1);
       AP.diaSel = null;
-      document.getElementById('ap-card-dia').style.display = 'none';
-      apCarregarMes();
+
+      // Atualiza o título do mês
+      atualizarTituloMes();
+
+      // Se não houver profissionais, mostra calendário vazio
+      if (!cache.profissionais || cache.profissionais.length === 0) {
+        document.getElementById('ap-cal-days').innerHTML = gerarCalendarioVazio();
+        document.getElementById('ap-card-dia').style.display = 'none';
+        return;
+      }
+
+      // Se houver profissional selecionado, carrega o mês normalmente
+      if (AP.pro && AP.pro.id) {
+        apCarregarMes();
+      } else {
+        document.getElementById('ap-cal-days').innerHTML = gerarCalendarioVazio();
+      }
     }
 
     function apClickDia(data) {
