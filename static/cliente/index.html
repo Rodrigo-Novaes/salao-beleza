@@ -702,7 +702,7 @@
               <div style="font-size:.75rem;color:var(--lt)">${s.descricao} · ⏱ ${s.duracao} min</div>
             </div>
           </div>
-          <span style="font-family:'Cormorant Garamond',serif;font-size:1.1rem;color:var(--dr);font-weight:600;white-space:nowrap">R$ ${s.preco.toFixed(2)}</span>
+          <span style="font-family:'Cormorant Garamond',serif;font-size:1.1rem;color:var(--dr);font-weight:600;white-space:nowrap">R$ ${s.preco.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2})}</span>
         </div>`).join('')}
     </div>`).join('');
     }
@@ -866,7 +866,7 @@
       <div style="display:flex;justify-content:space-between;padding:.4rem 0;border-bottom:1px solid rgba(160,112,96,.2)"><span style="color:var(--lt);font-size:.85rem">Serviço</span><span style="font-weight:500">${svc ? svc.icone + ' ' + svc.nome : '—'}</span></div>
       <div style="display:flex;justify-content:space-between;padding:.4rem 0;border-bottom:1px solid rgba(160,112,96,.2)"><span style="color:var(--lt);font-size:.85rem">Profissional</span><span style="font-weight:500">${pro ? pro.nome : '—'}</span></div>
       <div style="display:flex;justify-content:space-between;padding:.4rem 0;border-bottom:1px solid rgba(160,112,96,.2)"><span style="color:var(--lt);font-size:.85rem">Data e hora</span><span style="font-weight:500">${fmtDate(data)} às ${sel.slot}</span></div>
-      <div style="display:flex;justify-content:space-between;padding:.4rem 0"><span style="color:var(--lt);font-size:.85rem">Valor</span><span style="font-family:'Cormorant Garamond',serif;font-size:1.2rem;color:var(--dr);font-weight:600">${svc ? 'R$ ' + svc.preco.toFixed(2) : '—'}</span></div>
+      <div style="display:flex;justify-content:space-between;padding:.4rem 0"><span style="color:var(--lt);font-size:.85rem">Valor</span><span style="font-family:'Cormorant Garamond',serif;font-size:1.2rem;color:var(--dr);font-weight:600">${svc ? 'R$ ' + svc.preco.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2}) : '—'}</span></div>
     </div>`;
     }
 
@@ -887,7 +887,7 @@
       <div class="confirm-row"><span class="key">Serviço</span><span class="val">${svc ? svc.icone + ' ' + svc.nome : '—'}</span></div>
       <div class="confirm-row"><span class="key">Profissional</span><span class="val">${pro ? pro.nome : '—'}</span></div>
       <div class="confirm-row"><span class="key">Data e Hora</span><span class="val">${fmtDate(data)} às ${sel.slot}</span></div>
-      <div class="confirm-row"><span class="key">Valor</span><span class="val" style="color:var(--gold)">${svc ? 'R$ ' + svc.preco.toFixed(2) : '—'}</span></div>`;
+      <div class="confirm-row"><span class="key">Valor</span><span class="val" style="color:var(--gold)">${svc ? 'R$ ' + svc.preco.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2}) : '—'}</span></div>`;
         if (r.whatsapp_link) document.getElementById('wpp-link').href = r.whatsapp_link;
         document.getElementById('booking-container').style.display = 'none';
         document.getElementById('success-container').style.display = 'block';

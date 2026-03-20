@@ -1809,6 +1809,7 @@
               <strong>${a.cliente_nome}</strong><br>
               <span style="font-size:.78rem;color:var(--lt)">${a.cliente_tel}</span><br>
               <span title="Clique para copiar o código" onclick="copiarCodigo('${a.codigo_acesso}')" style="font-size:.72rem;background:#f0e8d8;color:var(--dr);padding:.1rem .4rem;border-radius:6px;cursor:pointer;font-family:monospace;letter-spacing:.05em">🔑 ${a.codigo_acesso || '—'}</span>
+              ${a.observacao ? '<br><span style="font-size:.75rem;color:var(--mid);font-style:italic">💬 '+a.observacao+'</span>' : ''}
             </td>
             <td>${a.servico_icone || ''} ${a.servico_nome || '—'}</td>
             <td>${a.profissional_nome ? '<span class="color-dot" style="background:' + a.profissional_cor + '"></span>' + a.profissional_nome : '—'}</td>

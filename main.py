@@ -227,6 +227,10 @@ def montar_wpp_link(tel: str, texto: str) -> str:
     if len(num) <= 11:  # sem código do país
         num = "55" + num
     return f"https://wa.me/{num}?text={urllib.parse.quote(texto)}"
+def fmt_moeda(valor: float) -> str:
+    """Formata valor para padrão BR: 1.000,00"""
+    return f"{valor:_.2f}".replace(".", ",").replace("_", ".")
+
 def get_tolerancia(conn) -> int:
     """Retorna a tolerância em minutos configurada (padrão 30)"""
     row = conn.execute("SELECT valor FROM configuracoes WHERE chave='tolerancia_minutos'").fetchone()
@@ -523,7 +527,7 @@ def create_appt(a: AgendamentoIn):
         f"📋 Serviço: {svc['nome']}\n"
         f"👩 Profissional: {pro['nome']}\n"
         f"📅 Data: {data_fmt} às {a.hora}\n"
-        f"💰 Valor: R$ {svc['preco']:.2f}\n\n"
+        f"💰 Valor: R$ {fmt_moeda(svc['preco'])}\n\n"
         f"🔑 Código do seu agendamento: *{codigo}*\n"
         f"Guarde este código para cancelar ou remarcar.\n\n"
         f"Qualquer dúvida, entre em contato! ✨"
@@ -531,6 +535,7 @@ def create_appt(a: AgendamentoIn):
     wpp_link = montar_wpp_link(a.cliente_tel, msg_conf)
 
     # E-mail
+    obs_row = f"<tr><td style='padding:.5rem;color:#9a8070;font-size:.85rem'>Observação</td><td style='padding:.5rem'>{a.observacao}</td></tr>" if a.observacao else ""
     html_email = f"""<div style="font-family:sans-serif;max-width:500px;margin:auto;padding:2rem;background:#faf7f2;border-radius:12px">
       <h2 style="font-family:Georgia,serif;color:#2a1f1a">✦ Agendamento Confirmado!</h2>
       <p>Olá, <strong>{a.cliente_nome}</strong>!</p>
@@ -538,7 +543,8 @@ def create_appt(a: AgendamentoIn):
         <tr><td style="padding:.5rem;color:#9a8070;font-size:.85rem">Serviço</td><td style="padding:.5rem;font-weight:500">{svc['nome']}</td></tr>
         <tr style="background:#f0e8d8"><td style="padding:.5rem;color:#9a8070;font-size:.85rem">Profissional</td><td style="padding:.5rem">{pro['nome']}</td></tr>
         <tr><td style="padding:.5rem;color:#9a8070;font-size:.85rem">Data e Hora</td><td style="padding:.5rem">{data_fmt} às {a.hora}</td></tr>
-        <tr style="background:#f0e8d8"><td style="padding:.5rem;color:#9a8070;font-size:.85rem">Valor</td><td style="padding:.5rem;color:#a07060;font-weight:600">R$ {svc['preco']:.2f}</td></tr>
+        <tr style="background:#f0e8d8"><td style="padding:.5rem;color:#9a8070;font-size:.85rem">Valor</td><td style="padding:.5rem;color:#a07060;font-weight:600">R$ {fmt_moeda(svc['preco'])}</td></tr>
+        {obs_row}
       </table>
       <div style="background:#2a1f1a;color:#fff;border-radius:10px;padding:1rem;text-align:center;margin:1.5rem 0">
         <div style="font-size:.8rem;color:rgba(255,255,255,.5);margin-bottom:.3rem">Código do agendamento</div>
@@ -547,6 +553,26 @@ def create_appt(a: AgendamentoIn):
       </div>
     </div>"""
     enviar_email(a.cliente_email, f"✦ Agendamento confirmado — {SALAO_NOME}", html_email)
+
+    # Notificação para o admin/salão
+    EMAIL_ADMIN = env("EMAIL_ADMIN", EMAIL_USER)
+    if EMAIL_ADMIN:
+        obs_admin = f"<tr style='background:#f0e8d8'><td style='padding:.5rem;color:#9a8070;font-size:.85rem'>Observação</td><td style='padding:.5rem'>{a.observacao}</td></tr>" if a.observacao else ""
+        html_admin = f"""<div style="font-family:sans-serif;max-width:500px;margin:auto;padding:2rem;background:#faf7f2;border-radius:12px">
+          <h2 style="font-family:Georgia,serif;color:#2a1f1a">🔔 Novo Agendamento!</h2>
+          <table style="width:100%;margin:1.5rem 0;border-collapse:collapse">
+            <tr><td style="padding:.5rem;color:#9a8070;font-size:.85rem">Cliente</td><td style="padding:.5rem;font-weight:500">{a.cliente_nome}</td></tr>
+            <tr style="background:#f0e8d8"><td style="padding:.5rem;color:#9a8070;font-size:.85rem">WhatsApp</td><td style="padding:.5rem">{a.cliente_tel}</td></tr>
+            <tr><td style="padding:.5rem;color:#9a8070;font-size:.85rem">E-mail</td><td style="padding:.5rem">{a.cliente_email or '—'}</td></tr>
+            <tr style="background:#f0e8d8"><td style="padding:.5rem;color:#9a8070;font-size:.85rem">Serviço</td><td style="padding:.5rem">{svc['nome']}</td></tr>
+            <tr><td style="padding:.5rem;color:#9a8070;font-size:.85rem">Profissional</td><td style="padding:.5rem">{pro['nome']}</td></tr>
+            <tr style="background:#f0e8d8"><td style="padding:.5rem;color:#9a8070;font-size:.85rem">Data e Hora</td><td style="padding:.5rem">{data_fmt} às {a.hora}</td></tr>
+            <tr><td style="padding:.5rem;color:#9a8070;font-size:.85rem">Valor</td><td style="padding:.5rem;color:#a07060;font-weight:600">R$ {fmt_moeda(svc['preco'])}</td></tr>
+            <tr style="background:#f0e8d8"><td style="padding:.5rem;color:#9a8070;font-size:.85rem">Código</td><td style="padding:.5rem;font-family:monospace;font-weight:600;color:#c8a96e">{codigo}</td></tr>
+            {obs_admin}
+          </table>
+        </div>"""
+        enviar_email(EMAIL_ADMIN, f"🔔 Novo agendamento — {a.cliente_nome} ({data_fmt} às {a.hora})", html_admin)
 
     conn.close()
     return {"id": appt_id, "codigo": codigo, "whatsapp_link": wpp_link}
