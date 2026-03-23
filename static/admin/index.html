@@ -770,6 +770,113 @@
       }
     }
 
+    @media(max-width:600px) {
+      /* ── MODAIS ── */
+      [id^="modal-"] > div {
+        width: 100% !important;
+        max-width: 100% !important;
+        max-height: 92vh;
+        overflow-y: auto;
+        border-radius: 16px 16px 0 0 !important;
+        padding: 1.2rem 1rem !important;
+        box-sizing: border-box;
+      }
+      [id^="modal-"] input,
+      [id^="modal-"] select,
+      [id^="modal-"] textarea {
+        width: 100% !important;
+        min-width: 0 !important;
+        box-sizing: border-box !important;
+      }
+      [id^="modal-"] .form-row,
+      [id^="modal-"] .cols-2,
+      [id^="modal-"] .cols-3,
+      [id^="modal-"] .cols-4 {
+        grid-template-columns: 1fr !important;
+      }
+      #svc-icone { width: 70px !important; flex-shrink: 0; }
+      #emoji-picker {
+        width: 100% !important;
+        left: 0 !important;
+        right: 0 !important;
+        box-sizing: border-box !important;
+      }
+      #pro-cor { width: 100% !important; }
+
+      /* ── AGENDA ── */
+      #filter-busca {
+        min-width: 0 !important;
+        width: 100% !important;
+      }
+
+      /* ── RELATÓRIO ── */
+      #view-relatorio { overflow-x: hidden !important; }
+      .report-grid { grid-template-columns: 1fr !important; }
+      .form-row.cols-4 { grid-template-columns: 1fr 1fr !important; }
+      .rank-row { flex-wrap: wrap !important; gap: .3rem !important; }
+      .rank-row span[style*="min-width"] {
+        min-width: 0 !important;
+        flex: 1 1 100% !important;
+        font-size: .78rem !important;
+      }
+      .rank-bar-wrap {
+        flex: 1 1 100% !important;
+        height: 8px !important;
+        background: var(--warm) !important;
+        border-radius: 4px !important;
+        overflow: hidden !important;
+      }
+      .rank-row > span:last-child { flex: 1 1 100% !important; text-align: right !important; }
+      .chart-box canvas { max-width: 100% !important; height: auto !important; }
+      #rel-stats { grid-template-columns: 1fr 1fr !important; }
+
+      /* ── USUÁRIOS ── */
+      #view-usuarios .form-section {
+        overflow-x: auto !important;
+      }
+      #usuarios-table {
+        font-size: .78rem !important;
+        min-width: 480px;
+      }
+      #usuarios-table th,
+      #usuarios-table td {
+        padding: .5rem .6rem !important;
+        white-space: nowrap;
+      }
+      /* Ocultar colunas menos importantes no mobile */
+      #usuarios-table th:nth-child(5),
+      #usuarios-table td:nth-child(5) {
+        display: none !important;
+      }
+
+      /* ── CONFIGS ── */
+      div[style*="grid-template-columns:1fr 1fr"][style*="max-width:900px"],
+      div[style*="grid-template-columns:1fr 1fr"][style*="max-width:800px"] {
+        grid-template-columns: 1fr !important;
+      }
+      #tema-grid div[style*="grid-template-columns"] {
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)) !important;
+      }
+
+      /* ── AGENDA PROFISSIONAIS ── */
+      #ap-content {
+        flex-direction: column !important;
+        overflow-x: hidden !important;
+        gap: 1rem !important;
+      }
+      .ap-cal-wrap {
+        flex: none !important;
+        min-width: 0 !important;
+        width: 100% !important;
+      }
+      .ap-cal-wrap .form-section { width: 100% !important; }
+      .ap-panel-wrap {
+        flex: none !important;
+        min-width: 0 !important;
+        width: 100% !important;
+      }
+    }
+
     .mobile-nav {
       display: none;
       position: fixed;
@@ -1048,7 +1155,7 @@
       <div id="ap-content" style="display:flex;flex-wrap:nowrap;gap:3rem;align-items:flex-start;overflow-x:auto">
 
         <!-- CALENDÁRIO -->
-        <div style="flex:0 0 460px;min-width:460px">
+        <div class="ap-cal-wrap" style="flex:0 0 460px;min-width:460px">
           <div class="form-section" style="padding:0;overflow:hidden;width:460px">
             <div
               style="background:var(--dark);padding:.9rem 1.3rem;display:flex;align-items:center;justify-content:space-between">
@@ -1099,7 +1206,7 @@
         </div>
 
         <!-- PAINEL LATERAL -->
-        <div style="flex:0 0 380px;min-width:380px;width:380px">
+        <div class="ap-panel-wrap" style="flex:0 0 380px;min-width:380px;width:380px">
           <!-- DIA SELECIONADO -->
           <div class="form-section" id="ap-card-dia" style="display:none">
             <div style="background:var(--warm);border-radius:10px;padding:.8rem 1rem;margin-bottom:1rem">
